@@ -4,8 +4,7 @@ xoroshiro-plusplus
 
 Implementions of the xoroshiro32++ and xoroshiro64++ PRNG algorthims by David Blackman and Sebastiano Vigna in C++, Verilog, VHDL and SpinalHDL.
 
-The xoroshiro32++ is as used in tha Prallax Propeller 2 micro-controller. The xoroshiro64++ is included here as a nice long
-cycle PRNG that needs no multiply.
+These PRNG algorithms are the same as those implemented in the hardware of the Parallax Propeller 2 micro-controller. The xoroshiro64++ is included here as a nice long cycle PRNG that needs no multiply.
 
 ### C++ Version
 
@@ -59,8 +58,8 @@ The xoroshiro32++ and xoroshiro32++ are implemented in the header file src/main/
 
 #### Prerequists
 
-To build Verilog from the SpinalHDL sources install the Scala Build Tool, sbt, as per the instructions in the SpinalHDL documantation.
-To run the testbench also install Verilator.
+To build Verilog from the SpinalHDL sources install the Scala Build Tool, sbt, as per the instructions in the SpinalHDL documentation.
+To run the testbench also install the Verilator.
 
 #### Generate Verilog
 
@@ -85,7 +84,7 @@ Verilog and VHDL files will be generated into the root directory of the repo.
 
 #### Test
 
-If you want to run the scala written testbench
+If you want to run the Scala written testbench (see src/main/scala/XoroshiroPlusPlus/xoroshiro-plusplus.scala/xoroshiro-plusplus-sim.scala)
 
     $ sbt "run-main XoroshiroPlusPlus.XoroshiroPlusPlusSim"
 
