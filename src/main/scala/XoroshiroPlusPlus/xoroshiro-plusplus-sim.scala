@@ -7,7 +7,7 @@ import spinal.core.sim._
 import scala.util.Random
 
 
-// MyTopLevel's testbench
+// Xoroshiro64PlusPlus testbench
 object XoroshiroPlusPlusSim {
   def main(args: Array[String]) {
 
@@ -24,7 +24,7 @@ object XoroshiroPlusPlusSim {
 
       var idx = 0
       while(idx < 16){
-        // Drive the dut inputs with random values
+        // Drive the DUT inputs with random values
         dut.io.next #= true
 
         // Wait a rising edge on the clock
@@ -32,8 +32,7 @@ object XoroshiroPlusPlusSim {
 
         println(dut.io.prng.toLong.toHexString.padTo(8, "0").mkString)
 
-
-        // Check that the dut values match with the reference model ones
+        // Check that the DUT values match with the reference model ones
         // val modelFlag = modelState == 0 || dut.io.cond1.toBoolean
         // assert(dut.io.state.toInt == modelState)
         // assert(dut.io.flag.toBoolean == modelFlag)
