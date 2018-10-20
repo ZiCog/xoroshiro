@@ -1,8 +1,10 @@
 .idea/
-Xoroshiro64PlusPlus.v
+.vscode
 project/project/
 project/target/
 simWorkspace/
 target/
 tmp/
-
+db/
+incremental_db/
+output_files/
