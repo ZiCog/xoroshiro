@@ -148,11 +148,19 @@ $ sbt "run-main XoroshiroPlusPlus.XororshiroPluPlusVhdl"
 
 There is no test bench for the VHDL versions.
 
-### References:
+### References
 
      Scrambled Linear Pseudorandom Number Generators: https://arxiv.org/pdf/1805.01407.pdf
 
      The Parallax Forums discussion: http://forums.parallax.com/discussion/166176/random-lfsr-on-p2/p62
 
      SpinalHDL: http://spinalhdl.github.io/SpinalDoc
- 
+     
+### Credits
+
+David Blackman and Sebastiano Vigna for creating these and many other PRNG.
+
+TonyB_ and evanh on the Parallax Forums for testing, help, discussion and advice
+
+
+
