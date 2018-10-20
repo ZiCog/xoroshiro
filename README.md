@@ -47,10 +47,10 @@ The xoroshiro32++ and xoroshiro32++ are implemented in the header file src/main/
     762d74c9
     3e7d7e8f
     e10e0616
-    v5788242d
+    5788242d
     d8ece2a3
     7a242fab
-    vadd23d97
+    add23d97
     98ef01be
 
 
