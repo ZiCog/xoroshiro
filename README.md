@@ -70,7 +70,6 @@ Clone or download this repository.
 
 Open a terminal in the root of it and run "sbt run". At the first execution, the process could take some seconds
 
-
     $ cd xoroshiro-plusplus
     $ sbt run
 
@@ -82,6 +81,8 @@ If you want to generate the VHDL of your design
 
     $ sbt "run-main Sodor.SodorVhdl"
 
+Verilog and VHDL files will be generated into the root directory of the repo.
+
 #### Test
 
 If you want to run the scala written testbench
@@ -90,8 +91,8 @@ If you want to run the scala written testbench
 
 Which should produce 16 iterations of the PRNG in it's output, c.f. the C++ reults above.
 
-    [info] Loading project definition from /mnt/c/Users/michael/Documents/xoroshiro-plusplus/project
-    [info] Set current project to xoroshiro-plusplus (in build file:/mnt/c/Users/michael/Documents/xoroshiro-plusplus/)
+    [info] Loading project definition from /mnt/c/Users/zicog/Documents/xoroshiro-plusplus/project
+    [info] Set current project to xoroshiro-plusplus (in build file:/mnt/c/Users/zicog/Documents/xoroshiro-plusplus/)
     [info] Running XoroshiroPlusPlus.XoroshiroPlusPlusSim
     [info] [Runtime] SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae    
     [info] [Runtime] JVM max memory : 1817.0MiB
@@ -102,10 +103,10 @@ Which should produce 16 iterations of the PRNG in it's output, c.f. the C++ reul
     [info] [Progress] at 0.330 :   emit Xoroshiro64PlusPlus
     [info] [Info] Number of registers : 64
     [info] [Done] at 0.427
-    [info] [Progress] Simulation workspace in /mnt/c/Users/michael/Documents/xoroshiro-plusplus/./simWorkspace/Xoroshiro64PlusPlus
+    [info] [Progress] Simulation workspace in /mnt/c/Users/zicog/Documents/xoroshiro-plusplus/./simWorkspace/Xoroshiro64PlusPlus
     [info] [Progress] Verilator compilation started
     [info] [Progress] Verilator compilation done in 3503.793 ms
-    [info] [Progress] Start Xoroshiro64PlusPlus test_Xoroshiro64PlusPlus simulation with seed -296360197591574595, wave in             /mnt/c/Users/michael/Documents/xoroshiro-plusplus/./simWorkspace/Xoroshiro64PlusPlus/test_Xoroshiro64PlusPlus.vcd
+    [info] [Progress] Start Xoroshiro64PlusPlus test_Xoroshiro64PlusPlus simulation with seed -296360197591574595, wave in             /mnt/c/Users/zicog/Documents/xoroshiro-plusplus/./simWorkspace/Xoroshiro64PlusPlus/test_Xoroshiro64PlusPlus.vcd
     [info] 48020a01
     [info] 81662931
     [info] cd2b5253
