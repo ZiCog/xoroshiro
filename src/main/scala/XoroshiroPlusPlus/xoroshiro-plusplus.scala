@@ -5,7 +5,6 @@ import spinal.lib._
 
 import scala.util.Random
 
-
 class  Xoroshiro32PlusPlus extends Component {
   val io = new Bundle {
     val prng = out UInt(16 bits)
@@ -66,11 +65,65 @@ class  Xoroshiro64PlusPlus extends Component {
   io.prng := (s0_ + s1_).rotateLeft(d) + s0_
 }
 
-// Generate the MyTopLevel's Verilog
+class  SwitchDebounce extends Component {
+  val io = new Bundle {
+    val D = in Bool
+    val Q = out Bool
+  }
+
+  val timer = Reg(UInt(16 bits)) init 0
+  val q_ = Reg(Bool) init False
+  timer := timer
+  q_ := q_
+
+  when (io.D) {
+    when (!(timer === 0xffff)) {
+      timer := timer + 1
+    } otherwise {
+      q_ := True
+    }
+  } otherwise {
+    when (!(timer === 0x0000)) {
+      timer := timer - 1
+    } otherwise {
+      q_ := False
+    }
+  }
+
+  io.Q := q_
+}
+
+class  Monostable extends Component {
+  val io = new Bundle {
+    val trigger = in Bool
+    val Q = out Bool
+  }
+  val oldTrigger = Reg(Bool) init (False)
+
+  // Detect a rising edge on the trigger input
+  oldTrigger := io.trigger
+
+  io.Q := io.trigger && !oldTrigger
+}
+
+// Generate Verilog
 object XororshiroPluPlusVerilog {
   def main(args: Array[String]) {
     SpinalVerilog(new Xoroshiro64PlusPlus)
-    //SpinalVerilog(new Xoroshiro32PlusPlus)
+    SpinalVerilog(new Xoroshiro32PlusPlus)
+    SpinalVerilog(new SwitchDebounce)
+    SpinalVerilog(new Monostable)
+    SpinalVerilog(new Xoroshiro32PlusPlus)
   }
 }
 
+// Generate VHDL
+object XororshiroPluPlusVhdl {
+  def main(args: Array[String]) {
+    SpinalVhdl(new Xoroshiro64PlusPlus)
+    SpinalVhdl(new Xoroshiro32PlusPlus)
+    SpinalVhdl(new SwitchDebounce)
+    SpinalVhdl(new Monostable)
+    SpinalVhdl(new Xoroshiro32PlusPlus)
+  }
+}
