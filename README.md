@@ -135,9 +135,9 @@ There is a Quartus project file that will build a demo of the xoroshiro64++ PRNG
 
 Other Verilog support files are:
 
-SwitchDebounce.v  -  Debounces switch presses.
-Monostable.v      -  Generates a single clock width pulse on detecting a rising edge in input
-Top.v             -  The top level Verilog of the demo.
+* SwitchDebounce.v  -  Debounces switch presses.
+* Monostable.v      -  Generates a single clock width pulse on detecting a rising edge in input
+* Top.v             -  The top level Verilog of the demo.
 
 ### VHDL Version.
 
