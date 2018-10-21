@@ -28,7 +28,7 @@ void test32()
   Xoroshiro32PlusPlus prng(1, 0);
   uint16_t random;
 
-  std::cout << "First " << std::dec << SAMPLE_SIZE << " outputs of Xoroshiro32PlusPlus:" << std::endl; 
+  std::cout << "First " << std::dec << SAMPLE_SIZE << " outputs of Xoroshiro32++:" << std::endl; 
 
   for (uint64_t i = 0; i < SAMPLE_SIZE; i++)
   {
@@ -43,7 +43,7 @@ void test64()
   Xoroshiro64PlusPlus prng(1, 0);
   uint32_t random;
 
-  std::cout << "First " << std::dec << SAMPLE_SIZE << " outputs of Xoroshiro64PlusPlus:" << std::endl; 
+  std::cout << "First " << std::dec << SAMPLE_SIZE << " outputs of Xoroshiro64++:" << std::endl; 
 
   for (uint64_t i = 0; i < SAMPLE_SIZE; i++)
   {
@@ -55,9 +55,29 @@ void test64()
   std::cout << std::endl;
 }
 
+void test128()
+{
+  Xoroshiro128StarStar prng(1, 0);
+  uint64_t random;
+
+  std::cout << "First " << std::dec << SAMPLE_SIZE << " outputs of Xoroshiro128**:" << std::endl; 
+
+  for (uint64_t i = 0; i < SAMPLE_SIZE; i++)
+  {
+    random = prng();
+    std::cout << std::hex << std::setfill('0') << std::setw(16) << random << std::endl;
+    //std::cout << std::bitset<64>(random);
+
+  }
+  std::cout << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
   test32();
   std::cout << std::endl;
   test64();
+  std::cout << std::endl;
+  test128();
+  std::cout << std::endl;
 }

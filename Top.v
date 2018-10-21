@@ -14,8 +14,8 @@ module Top (input clock_50, input[1:0] key, output[7:0] led, output P0, output P
         if (resetCount == 100) reset <= 0;
     end
 
-	 wire [15:0] prng;
-	 assign led[7:0] = prng[15:8];
+	 wire [63:0] prng;
+	 assign led[7:0] = prng[63:56];
 	 
     wire nextKey = !key[0];
 	 wire debouncedNextKey;
@@ -61,7 +61,7 @@ module Top (input clock_50, input[1:0] key, output[7:0] led, output P0, output P
 	 
 	 
 	 // Our Pseudo Random Number Generator
-    Xoroshiro32PlusPlus xoroshiro32PlusPlus (
+    Xoroshiro128StarStar xoroshiro128StarStar (
         .clk(clock_50),
         .reset(reset),
 		  .io_next(next),

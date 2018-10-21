@@ -18,10 +18,10 @@ class  Xoroshiro32PlusPlus extends Component {
   val p1 = Reg(UInt(16 bits)) init(0)
 
   // The xoroshiro32++ magic numbers
-  val a = 13
-  val b = 5
-  val c = 10
-  val d = 9
+  def a = 13
+  def b = 5
+  def c = 10
+  def d = 9
 
   // Calculate the next PRNG state.
   val s0_ = s0.rotateLeft(a) ^ (s1 ^ s0) ^ ((s1 ^ s0) |<< b)
@@ -50,10 +50,10 @@ class  Xoroshiro64PlusPlus extends Component {
   val s1 = Reg(UInt(32 bits)) init(0)
 
   // The xoroshiro64++ magic numbers
-  val a = 26
-  val b = 9
-  val c = 13
-  val d = 17
+  def a = 26
+  def b = 9
+  def c = 13
+  def d = 17
 
   // Calculate the next PRNG state.
   val s0_ = s0.rotateLeft(a) ^ (s1 ^ s0) ^ ((s1 ^ s0) |<< b)
@@ -67,6 +67,42 @@ class  Xoroshiro64PlusPlus extends Component {
 
   // Deliver the "++" scrambled output
   io.prng := (s0_ + s1_).rotateLeft(d) + s0_
+}
+
+class  Xoroshiro128StarStar extends Component {
+  val io = new Bundle {
+    val prngHigh = out UInt(32 bits)
+    val prngLow = out UInt(32 bits)
+    val next = in Bool
+  }
+
+  // The PRNG state
+  val s0 = Reg(UInt(64 bits)) init(1)
+  val s1 = Reg(UInt(64 bits)) init(0)
+
+  // The xoroshiro128** magic numbers
+  def a = 24
+  def b = 16
+  def c = 37
+  def s = 5
+  def r = 7
+  def t = 9
+
+  // Calculate the next PRNG state.
+  val s0_ = s0.rotateLeft(a) ^ (s1 ^ s0) ^ ((s1 ^ s0) |<< b)
+  val s1_ = (s1 ^ s0).rotateLeft(c)
+
+  when(io.next) {
+    // Update the PRNG state
+    s0 := s0_
+    s1 := s1_
+  }
+
+  // Deliver the "**" scrambled output: "rotl(s0 * S, R) * T"
+  val temp = ((s0 |<< 2) + s0).rotateLeft(r)
+  val prng = (temp |<< 3) + temp
+  io.prngHigh := prng(63 downto 32)
+  io.prngLow := prng(31 downto 0)
 }
 
 class  SwitchDebounce extends Component {
@@ -127,6 +163,7 @@ class SlowClock extends Component {
 // Generate Verilog
 object XororshiroPluPlusVerilog {
   def main(args: Array[String]) {
+    SpinalVerilog(new Xoroshiro128StarStar)
     SpinalVerilog(new Xoroshiro64PlusPlus)
     SpinalVerilog(new Xoroshiro32PlusPlus)
     SpinalVerilog(new SwitchDebounce)
@@ -138,6 +175,7 @@ object XororshiroPluPlusVerilog {
 // Generate VHDL
 object XororshiroPluPlusVhdl {
   def main(args: Array[String]) {
+    SpinalVhdl(new Xoroshiro128StarStar)
     SpinalVhdl(new Xoroshiro64PlusPlus)
     SpinalVhdl(new Xoroshiro32PlusPlus)
     SpinalVhdl(new SwitchDebounce)
