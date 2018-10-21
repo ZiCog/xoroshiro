@@ -14,6 +14,8 @@ class  Xoroshiro32PlusPlus extends Component {
   // The PRNG state
   val s0 = Reg(UInt(16 bits)) init(1)
   val s1 = Reg(UInt(16 bits)) init(0)
+  val p0 = Reg(UInt(16 bits)) init(0)
+  val p1 = Reg(UInt(16 bits)) init(0)
 
   // The xoroshiro32++ magic numbers
   val a = 13
@@ -29,10 +31,12 @@ class  Xoroshiro32PlusPlus extends Component {
     // Update the PRNG state
     s0 := s0_
     s1 := s1_
+    p0 := (s0 + s1).rotateLeft(d)
+    p1 := s0
   }
 
   // Deliver the "++" scrambled output
-  io.prng := (s0_ + s1_).rotateLeft(d) + s0_
+  io.prng := p0 + p1
 }
 
 class  Xoroshiro64PlusPlus extends Component {
@@ -106,6 +110,20 @@ class  Monostable extends Component {
   io.Q := io.trigger && !oldTrigger
 }
 
+class SlowClock extends Component {
+  val io = new Bundle {
+    val Q = out Bool
+  }
+  val count = Reg(UInt(25 bits)) init 0
+
+  //when(True) {
+    count := count + 1
+  //}
+
+  io.Q := ((count &  0x1000000) === 0)
+}
+
+
 // Generate Verilog
 object XororshiroPluPlusVerilog {
   def main(args: Array[String]) {
@@ -113,7 +131,7 @@ object XororshiroPluPlusVerilog {
     SpinalVerilog(new Xoroshiro32PlusPlus)
     SpinalVerilog(new SwitchDebounce)
     SpinalVerilog(new Monostable)
-    SpinalVerilog(new Xoroshiro32PlusPlus)
+    SpinalVerilog(new SlowClock)
   }
 }
 
