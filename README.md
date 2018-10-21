@@ -131,7 +131,7 @@ The top level spinal code is defined in src\main\scala\sodor
 
 The Verilog version is in the files Xoroshiro32PlusPlus.v and Xoroshiro64PlusPlus.v 
 
-There is a Quartus project file that will build a demo of the xoroshiro64++ PRNG for the DE0 Nano board. The demo will display the output of the PRNG on the 8 onboard LEDS and step through iterations on each press of key 1.
+There is a Quartus project file that will build a demo of the xoroshiro64++ PRNG for the DE0 Nano board. The demo will display the output of the PRNG on the 8 onboard LEDS and step through iterations, one every 1.5 seconds.
 
 Other Verilog support files are:
 
