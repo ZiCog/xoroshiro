@@ -62,6 +62,10 @@ set_location_assignment PIN_L3 -to led[7]
 set_location_assignment PIN_R8 -to clock_50
 set_location_assignment PIN_J15 -to key[0]
 set_location_assignment PIN_E1 -to key[1]
+set_location_assignment PIN_J14 -to P0
+set_location_assignment PIN_K15 -to P2
+set_global_assignment -name VERILOG_FILE Xoroshiro32PlusPlus.v
+set_global_assignment -name VERILOG_FILE SlowClock.v
 set_global_assignment -name VERILOG_FILE Monostable.v
 set_global_assignment -name VERILOG_FILE SwitchDebounce.v
 set_global_assignment -name VERILOG_FILE Xoroshiro64PlusPlus.v
