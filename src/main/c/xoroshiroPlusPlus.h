@@ -95,7 +95,7 @@ class Xoroshiro32PlusPlus
 
   static inline uint16_t rol(uint16_t x, uint16_t k) noexcept
   {
-    return (x << k) | (k >> ((sizeof(x) * 8) - k));
+    return (x << k) | (x >> ((sizeof(x) * 8) - k));
   }
 
   uint16_t s0;
