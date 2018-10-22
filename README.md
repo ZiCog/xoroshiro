@@ -12,15 +12,15 @@ HDL for use in FPGA is written using SpinalHDL[3] from which Verilog and VHDL ve
 
 ### C++ Version
 
-The xoroshiro32++, xoroshiro32++ and xoroshiro128** are implemented in the header file src/main/c/xoroshoroPlusPlus.h. There is a test harness in xoroshiroPlusPlus.cpp
+The xoroshiro32++, xoroshiro32++ and xoroshiro128** are implemented in the header file src/main/c/xoroshoro.h. There is a test harness in xoroshiro.cpp
 
 #### Compile with:
 
-    $ g++ -Wall -O3 -o  xoroshiroPlusPlus src/main/c/xoroshiroPlusPlus.cpp
+    $ g++ -Wall -O3 -o  xoroshiro src/main/c/xoroshiro.cpp
 
 #### Test with:
 
-$ ./xoroshiroPlusPlus
+$ ./xoroshiro
 First 16 outputs of Xoroshiro32++:
 0201
 6269
