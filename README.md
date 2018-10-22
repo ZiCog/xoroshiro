@@ -20,60 +20,60 @@ The xoroshiro32++, xoroshiro32++ and xoroshiro128** are implemented in the heade
 
 #### Test with:
 
-$ ./xoroshiro
-First 16 outputs of Xoroshiro32++:
-0201
-6269
-ae16
-12a2
-4ae8
-d719
-0c52
-984b
-1df1
-743c
-dba0
-bcc6
-34c9
-746c
-3643
-07ff
+    $ ./xoroshiro
+    First 16 outputs of Xoroshiro32++:
+    0201
+    6269
+    ae16
+    12a2
+    4ae8
+    d719
+    0c52
+    984b
+    1df1
+    743c
+    dba0
+    bcc6
+    34c9
+    746c
+    3643
+    07ff
 
-First 16 outputs of Xoroshiro64++:
-48020a01
-81662931
-cd2b5253
-d3e6cbe6
-cd5af43d
-860aa4ba
-b7bea7fb
-63dcaff3
-762d74c9
-3e7d7e8f
-e10e0616
-5788242d
-d8ece2a3
-7a242fab
-add23d97
-98ef01be
+    First 16 outputs of Xoroshiro64++:
+    48020a01
+    81662931
+    cd2b5253
+    d3e6cbe6
+    cd5af43d
+    860aa4ba
+    b7bea7fb
+    63dcaff3
+    762d74c9
+    3e7d7e8f
+    e10e0616
+    5788242d
+    d8ece2a3
+    7a242fab
+    add23d97
+    98ef01be
 
-First 16 outputs of Xoroshiro128**:
-0000000000001680
-0000001696801680
-e682e68000001680
-800016f099c09692
-db9ce96699c368c0
-acd4a897e816f3bc
-736225bd8540f37d
-d5ef4bc8db65564a
-e6844f92c4467f20
-ecbfdd2089c19276
-3e3c8f32277dc824
-6135641f1dadd2ca
-0695119b0de23cfa
-8837ded221b7094d
-99f5fdc2c04a92d6
-57262a94b712228c
+    First 16 outputs of Xoroshiro128**:
+    0000000000001680
+    0000001696801680
+    e682e68000001680
+    800016f099c09692
+    db9ce96699c368c0
+    acd4a897e816f3bc
+    736225bd8540f37d
+    d5ef4bc8db65564a
+    e6844f92c4467f20
+    ecbfdd2089c19276
+    3e3c8f32277dc824
+    6135641f1dadd2ca
+    0695119b0de23cfa
+    8837ded221b7094d
+    99f5fdc2c04a92d6
+    57262a94b712228c
 
 
 ### SpinalHDL Version
@@ -205,7 +205,9 @@ There is no test bench for the VHDL versions.
 [2] Scrambled Linear Pseudorandom Number Generators: https://arxiv.org/pdf/1805.01407.pdf
 
 [3] SpinalHDL: http://spinalhdl.github.io/SpinalDoc
-     
+    
+[4] CONFIGURING DE0-NANO EPCS64 FLASH DEVICE: https://unboxnbeyond.wordpress.com/2013/05/11/configuring-de0-nano-epcs64-flash-device/    
+    
 ### Credits
 
 David Blackman and Sebastiano Vigna for creating these and many other PRNG.
