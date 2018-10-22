@@ -19,7 +19,7 @@
 #include <iomanip>
 #include <bitset>
 
-#include "xoroshiroPlusPlus.h"
+#include "xoroshiro.h"
 
 #define SAMPLE_SIZE 16
 
