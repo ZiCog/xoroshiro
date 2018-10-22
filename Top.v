@@ -65,7 +65,8 @@ module Top (input clock_50, input[1:0] key, output[7:0] led, output P0, output P
         .clk(clock_50),
         .reset(reset),
 		  .io_next(next),
-		  .io_prng(prng)
+		  .io_prngHigh(prng[63:32]),
+		  .io_prngLow(prng[31:0])
     );
 
 endmodule
