@@ -1,4 +1,4 @@
-package XoroshiroPlusPlus
+package Xoroshiro
 
 import spinal.core._
 import spinal.lib._
@@ -162,7 +162,7 @@ class SlowClock extends Component {
 
 
 // Generate Verilog
-object XororshiroPluPlusVerilog {
+object XororshiroVerilog {
   def main(args: Array[String]) {
     SpinalVerilog(new Xoroshiro128StarStar)
     SpinalVerilog(new Xoroshiro64PlusPlus)
@@ -174,7 +174,7 @@ object XororshiroPluPlusVerilog {
 }
 
 // Generate VHDL
-object XororshiroPluPlusVhdl {
+object XororshiroVhdl {
   def main(args: Array[String]) {
     SpinalVhdl(new Xoroshiro128StarStar)
     SpinalVhdl(new Xoroshiro64PlusPlus)

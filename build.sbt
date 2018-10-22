@@ -1,4 +1,4 @@
-name := "xoroshiro-plusplus"
+name := "xoroshiro"
 
 version := "1.0"
 

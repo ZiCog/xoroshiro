@@ -1,4 +1,4 @@
-package XoroshiroPlusPlus
+package Xoroshiro
 
 import spinal.core._
 import spinal.sim._
@@ -8,7 +8,7 @@ import scala.util.Random
 
 
 // Xoroshiro64PlusPlus testbench
-object XoroshiroPlusPlusSim {
+object XoroshiroSim {
   def main(args: Array[String]) {
 
     val compiled128 = SimConfig.withWave.compile{
