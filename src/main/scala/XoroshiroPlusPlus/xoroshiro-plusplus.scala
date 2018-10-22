@@ -79,6 +79,7 @@ class  Xoroshiro128StarStar extends Component {
   // The PRNG state
   val s0 = Reg(UInt(64 bits)) init(1)
   val s1 = Reg(UInt(64 bits)) init(0)
+  val p1 = Reg(UInt(64 bits)) init(0)
 
   // The xoroshiro128** magic numbers
   def a = 24
@@ -96,11 +97,11 @@ class  Xoroshiro128StarStar extends Component {
     // Update the PRNG state
     s0 := s0_
     s1 := s1_
+    p1 := ((s0 |<< 2) + s0).rotateLeft(r)
   }
 
   // Deliver the "**" scrambled output: "rotl(s0 * S, R) * T"
-  val temp = ((s0 |<< 2) + s0).rotateLeft(r)
-  val prng = (temp |<< 3) + temp
+  val prng = (p1 |<< 3) + p1
   io.prngHigh := prng(63 downto 32)
   io.prngLow := prng(31 downto 0)
 }
