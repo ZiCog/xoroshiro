@@ -114,9 +114,7 @@ class  SwitchDebounce extends Component {
 
   val timer = Reg(UInt(16 bits)) init 0
   val q_ = Reg(Bool) init False
-  timer := timer
-  q_ := q_
-
+  
   when (io.D) {
     when (!(timer === 0xffff)) {
       timer := timer + 1
@@ -134,7 +132,7 @@ class  SwitchDebounce extends Component {
   io.Q := q_
 }
 
-class  Monostable extends Component {
+class  EdgeDetect extends Component {
   val io = new Bundle {
     val trigger = in Bool
     val Q = out Bool
@@ -153,34 +151,126 @@ class SlowClock extends Component {
   }
   val count = Reg(UInt(25 bits)) init 0
 
-  //when(True) {
-    count := count + 1
-  //}
+  count := count + 1
 
   io.Q := ((count &  0x1000000) === 0)
 }
 
+class AsyncReceiver extends Component {
+  val io = new Bundle {
+    val enable = in Bool
+    val mem_valid = in Bool
+    val mem_ready = out Bool
+    val mem_addr = in UInt (4 bits)
+    val mem_rdata = out UInt (32 bits)
+
+    val baudClockX16 = in Bool
+    val rx = in Bool
+  }
+
+  val state = Reg(UInt(2 bits)) init (0)
+  val bitTimeOut = Reg(UInt(5 bits)) init (0)
+  val bitCount = Reg(UInt(3 bits)) init (0)
+  val shifter = Reg(UInt(8 bits)) init (0)
+  val buffer = Reg(UInt(8 bits)) init (0)
+  val bufferFull = Reg(Bool) init (False)
+
+  val baudClockX16Edge = new EdgeDetect
+  baudClockX16Edge.io.trigger := io.baudClockX16
+  val baudClockEdge = Bool
+  baudClockEdge := baudClockX16Edge.io.Q
+
+  // Keep the bit timer counting down
+  when(baudClockEdge) {
+    when(!(bitTimeOut === 0)) {
+      bitTimeOut := bitTimeOut - 1
+    }
+  }
+
+  switch(state) {
+    is(0) {
+      // Waiting for falling edge of start bit
+      when(io.rx === False) {
+        state := 1
+        bitTimeOut := 8
+      }
+    }
+    is(1) {
+      // Check valid start bit
+      when(bitTimeOut === 0) {
+        when(io.rx === False) {
+          bitTimeOut := 16
+          state := 2
+        } otherwise {
+          state := 0
+        }
+      }
+    }
+    is(2) {
+      // Clock in data bits
+      when(bitTimeOut === 0) {
+        shifter(bitCount) := io.rx
+        when(bitCount === 7) {
+          state := 3
+        }
+        bitCount := bitCount + 1
+        bitTimeOut := 16
+      }
+    }
+    is(3) {
+      // Check stop bit
+      when(bitTimeOut === 0) {
+        when(io.rx === True) {
+          buffer := shifter
+          bufferFull := True
+        }
+        state := 0
+      }
+    }
+  }
+
+  // Bus interface
+  // Wire-ORed output bus
+  io.mem_rdata := 0
+  io.mem_ready := False
+
+  when(io.mem_valid & io.enable) {
+    io.mem_ready := True
+    switch(io.mem_addr) {
+      is(U"0000") {
+        io.mem_rdata := buffer.resize(32)
+        bufferFull := False
+      }
+      is(U"0100") {
+        io.mem_rdata := bufferFull.asUInt.resize(32)
+      }
+      default {
+      }
+    }
+  }
+}
 
 // Generate Verilog
-object XororshiroVerilog {
+object XoroshiroVerilog {
   def main(args: Array[String]) {
     SpinalVerilog(new Xoroshiro128StarStar)
     SpinalVerilog(new Xoroshiro64PlusPlus)
     SpinalVerilog(new Xoroshiro32PlusPlus)
     SpinalVerilog(new SwitchDebounce)
-    SpinalVerilog(new Monostable)
+    SpinalVerilog(new EdgeDetect)
     SpinalVerilog(new SlowClock)
+    SpinalVerilog(new AsyncReceiver)
   }
 }
 
 // Generate VHDL
-object XororshiroVhdl {
+object XoroshiroVhdl {
   def main(args: Array[String]) {
     SpinalVhdl(new Xoroshiro128StarStar)
     SpinalVhdl(new Xoroshiro64PlusPlus)
     SpinalVhdl(new Xoroshiro32PlusPlus)
     SpinalVhdl(new SwitchDebounce)
-    SpinalVhdl(new Monostable)
+    SpinalVhdl(new EdgeDetect)
     SpinalVhdl(new Xoroshiro32PlusPlus)
   }
 }
