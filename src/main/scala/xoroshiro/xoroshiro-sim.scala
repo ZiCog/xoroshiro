@@ -245,7 +245,7 @@ object AsyncReceiverSim {
       busToRead(0)
       dut.clockDomain.waitRisingEdge()
       // Read outputs
-      println("Expect data = 55 :")
+      println("Expect data = aa :")
       print(f"clock: ${idx}%08d, ")
       print(f"baudclkCnt: ${baudClock16Count}%08d, ")
       print(f"rx: ${dut.io.rx.toBoolean}, ")
