@@ -126,7 +126,7 @@ object AsyncReceiverSim {
       dut.state.simPublic()
       dut.bitCount.simPublic()
       dut.shifter.simPublic()
-      dut.bitTimeOut.simPublic()
+      dut.bitTimer.simPublic()
       dut
     }
     compiled.doSim("AsyncReceiver") { dut =>
@@ -189,7 +189,7 @@ object AsyncReceiverSim {
         print(f"baudclkCnt: ${baudClock64Count}%08d, ")
         print(f"rx: ${dut.io.rx.toBoolean}, ")
         print(f"state: ${dut.state.toInt}%08d, ")
-        print(f"bitTimeOut: ${dut.bitTimeOut.toInt}%08d, ")
+        print(f"bitTimeOut: ${dut.bitTimer.toInt}%08d, ")
         print(f"bitcnt: ${dut.bitCount.toInt}%08d, ")
         print(f"shifter: ${dut.shifter.toInt}%08x, ")
         print(f"data: ${dut.io.mem_rdata.toLong}%08x")
@@ -251,7 +251,7 @@ object AsyncReceiverSim {
       print(f"baudclkCnt: ${baudClock64Count}%08d, ")
       print(f"rx: ${dut.io.rx.toBoolean}, ")
       print(f"state: ${dut.state.toInt}%08d, ")
-      print(f"bitTimeOut: ${dut.bitTimeOut.toInt}%08d, ")
+      print(f"bitTimer: ${dut.bitTimer.toInt}%08d, ")
       print(f"bitcnt: ${dut.bitCount.toInt}%08d, ")
       print(f"shifter: ${dut.shifter.toInt}%08x, ")
       print(f"data: ${dut.io.mem_rdata.toLong}%08x")
@@ -265,7 +265,7 @@ object AsyncReceiverSim {
       print(f"baudclkCnt: ${baudClock64Count}%08d, ")
       print(f"rx: ${dut.io.rx.toBoolean}, ")
       print(f"state: ${dut.state.toInt}%08d, ")
-      print(f"bitTimeOut: ${dut.bitTimeOut.toInt}%08d, ")
+      print(f"bitTimer: ${dut.bitTimer.toInt}%08d, ")
       print(f"bitcnt: ${dut.bitCount.toInt}%08d, ")
       print(f"shifter: ${dut.shifter.toInt}%08x, ")
       print(f"full: ${dut.io.mem_rdata.toLong}%08x")

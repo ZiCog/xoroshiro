@@ -1,19 +1,20 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
 // Date      : 04/11/2018, 13:18:43
-// Component : SlowClock
+// Component : EdgeDetect_
 
 
-module SlowClock (
+module EdgeDetect_ (
+      input   io_trigger,
       output  io_Q,
       input   clk,
       input   reset);
-  reg [24:0] count;
-  assign io_Q = ((count & (25'b1000000000000000000000000)) == (25'b0000000000000000000000000));
+  reg  oldTrigger;
+  assign io_Q = (io_trigger && (! oldTrigger));
   always @ (posedge clk or posedge reset) begin
     if (reset) begin
-      count <= (25'b0000000000000000000000000);
+      oldTrigger <= 1'b0;
     end else begin
-      count <= (count + (25'b0000000000000000000000001));
+      oldTrigger <= io_trigger;
     end
   end
 
