@@ -164,21 +164,21 @@ class AsyncReceiver extends Component {
     val mem_addr = in UInt (4 bits)
     val mem_rdata = out UInt (32 bits)
 
-    val baudClockX16 = in Bool
+    val baudClockX64 = in Bool
     val rx = in Bool
   }
 
   val state = Reg(UInt(2 bits)) init (0)
-  val bitTimeOut = Reg(UInt(5 bits)) init (0)
+  val bitTimeOut = Reg(UInt(7 bits)) init (0)
   val bitCount = Reg(UInt(3 bits)) init (0)
   val shifter = Reg(UInt(8 bits)) init (0)
   val buffer = Reg(UInt(8 bits)) init (0)
   val bufferFull = Reg(Bool) init (False)
 
-  val baudClockX16Edge = new EdgeDetect
-  baudClockX16Edge.io.trigger := io.baudClockX16
+  val baudClockX64Edge = new EdgeDetect
+  baudClockX64Edge.io.trigger := io.baudClockX64
   val baudClockEdge = Bool
-  baudClockEdge := baudClockX16Edge.io.Q
+  baudClockEdge := baudClockX64Edge.io.Q
 
   // Keep the bit timer counting down
   when(baudClockEdge) {
@@ -192,14 +192,14 @@ class AsyncReceiver extends Component {
       // Waiting for falling edge of start bit
       when(io.rx === False) {
         state := 1
-        bitTimeOut := 8
+        bitTimeOut := 32
       }
     }
     is(1) {
       // Check valid start bit
       when(bitTimeOut === 0) {
         when(io.rx === False) {
-          bitTimeOut := 16
+          bitTimeOut := 64
           state := 2
         } otherwise {
           state := 0
@@ -214,7 +214,7 @@ class AsyncReceiver extends Component {
           state := 3
         }
         bitCount := bitCount + 1
-        bitTimeOut := 16
+        bitTimeOut := 64
       }
     }
     is(3) {

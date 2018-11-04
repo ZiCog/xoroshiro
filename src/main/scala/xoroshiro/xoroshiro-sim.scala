@@ -137,7 +137,7 @@ object AsyncReceiverSim {
         dut.io.enable #= false
         dut.io.mem_valid #= false
         dut.io.mem_addr #= 0
-        dut.io.baudClockX16 #= false
+        dut.io.baudClockX64 #= false
         dut.io.rx #= true
       }
 
@@ -153,20 +153,21 @@ object AsyncReceiverSim {
         dut.io.mem_addr #= 0
       }
 
-      var baudClock16Count = 0
+      var baudClock64Count = 0
       var baudClcokDiv = 0
-      var baudClock16 = false
-      def generateBaudClock16(): Unit = {
+      var baudClock64 = false
+
+      def generateBaudClock64(): Unit = {
         baudClcokDiv += 1
         if (baudClcokDiv == 2) {
           baudClcokDiv = 0
-          if (baudClock16) {
-            baudClock16 = false
+          if (baudClock64) {
+            baudClock64 = false
           } else {
-            baudClock16 = true
-            baudClock16Count += 1
+            baudClock64 = true
+            baudClock64Count += 1
           }
-          dut.io.baudClockX16 #= baudClock16
+          dut.io.baudClockX64 #= baudClock64
         }
       }
 
@@ -178,14 +179,14 @@ object AsyncReceiverSim {
       initDutSignals()
 
       var idx = 0
-      while (idx < 1000) {
-        generateBaudClock16()
+      while (idx < 4000) {
+        generateBaudClock64()
 
         busToRead(4)
         dut.clockDomain.waitRisingEdge()
         // Read outputs
         print(f"clock: ${idx}%08d, ")
-        print(f"baudclkCnt: ${baudClock16Count}%08d, ")
+        print(f"baudclkCnt: ${baudClock64Count}%08d, ")
         print(f"rx: ${dut.io.rx.toBoolean}, ")
         print(f"state: ${dut.state.toInt}%08d, ")
         print(f"bitTimeOut: ${dut.bitTimeOut.toInt}%08d, ")
@@ -198,43 +199,43 @@ object AsyncReceiverSim {
         dut.clockDomain.waitRisingEdge()
 
         // Start bit
-        if (baudClock16Count == 2 * 16) {
+        if (baudClock64Count == 2 * 64) {
           dut.io.rx #= false
         }
         // Bit 0
-        if (baudClock16Count == 3 * 16) {
+        if (baudClock64Count == 3 * 64) {
           dut.io.rx #= false
         }
         // Bit 1
-        if (baudClock16Count == 4 * 16) {
+        if (baudClock64Count == 4 * 64) {
           dut.io.rx #= true
         }
         // Bit 2
-        if (baudClock16Count == 5 * 16) {
+        if (baudClock64Count == 5 * 64) {
           dut.io.rx #= false
         }
         // Bit 3
-        if (baudClock16Count == 6 * 16) {
+        if (baudClock64Count == 6 * 64) {
           dut.io.rx #= true
         }
         // Bit 4
-        if (baudClock16Count == 7 * 16) {
+        if (baudClock64Count == 7 * 64) {
           dut.io.rx #= false
         }
         // Bit 5
-        if (baudClock16Count == 8 * 16) {
+        if (baudClock64Count == 8 * 64) {
           dut.io.rx #= true
         }
         // Bit 6
-        if (baudClock16Count == 9 * 16) {
+        if (baudClock64Count == 9 * 64) {
           dut.io.rx #= false
         }
         // Bit 7
-        if (baudClock16Count == 10 * 16) {
+        if (baudClock64Count == 10 * 64) {
           dut.io.rx #= true
         }
         // Stop bit
-        if (baudClock16Count == 11 * 16) {
+        if (baudClock64Count == 11 * 64) {
           dut.io.rx #= true
         }
 
@@ -247,7 +248,7 @@ object AsyncReceiverSim {
       // Read outputs
       println("Expect data = aa :")
       print(f"clock: ${idx}%08d, ")
-      print(f"baudclkCnt: ${baudClock16Count}%08d, ")
+      print(f"baudclkCnt: ${baudClock64Count}%08d, ")
       print(f"rx: ${dut.io.rx.toBoolean}, ")
       print(f"state: ${dut.state.toInt}%08d, ")
       print(f"bitTimeOut: ${dut.bitTimeOut.toInt}%08d, ")
@@ -261,7 +262,7 @@ object AsyncReceiverSim {
       // Read outputs
       println("Expect full = 0 :")
       print(f"clock: ${idx}%08d, ")
-      print(f"baudclkCnt: ${baudClock16Count}%08d, ")
+      print(f"baudclkCnt: ${baudClock64Count}%08d, ")
       print(f"rx: ${dut.io.rx.toBoolean}, ")
       print(f"state: ${dut.state.toInt}%08d, ")
       print(f"bitTimeOut: ${dut.bitTimeOut.toInt}%08d, ")
