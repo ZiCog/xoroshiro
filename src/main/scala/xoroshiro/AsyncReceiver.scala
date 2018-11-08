@@ -20,6 +20,7 @@ class AsyncReceiver extends Component {
   val bitCount = Reg(UInt(3 bits)) init (0)
   val shifter = Reg(UInt(8 bits)) init (0)
   val buffer = Reg(UInt(8 bits)) init (0)
+  val bufferFull = Reg(Bool) init False
 
   val baudClockX64Edge = new EdgeDetect_
   baudClockX64Edge.io.trigger := io.baudClockX64
@@ -30,6 +31,7 @@ class AsyncReceiver extends Component {
   fifo.io.dataIn := buffer
   fifo.io.write := False
   fifo.io.read := False
+
 
   // Rx state machine
   when (baudClockEdge) {
@@ -68,6 +70,7 @@ class AsyncReceiver extends Component {
         when(bitTimer === 0) {
           when(io.rx === True) {
             buffer := shifter      // FIXME: Why do we need buffer here to make this work?
+            bufferFull := True
             fifo.io.write := True
           }
           state := 0
@@ -89,7 +92,8 @@ class AsyncReceiver extends Component {
         fifo.io.read := True
       }
       is(U"0100") {
-        io.mem_rdata := (!fifo.io.empty).asUInt.resize(32)
+        io.mem_rdata := bufferFull.asUInt.resize(32)
+        bufferFull := False
       }
       default {
       }
