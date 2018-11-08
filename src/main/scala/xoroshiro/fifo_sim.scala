@@ -119,18 +119,12 @@ object FifoSim {
       println("------------------------------------------------")
       println("TEST 3: Test the empty flag")
       loops = 0
-      byte = 0
       while (loops < 20) {
-        fifoWriteByte(byte)
-        byte += 1
-        fifoWriteByte(byte)
-        byte += 1
-        fifoWriteByte(byte)
-        byte += 1
-        fifoWriteByte(byte)
-        byte += 1
-        fifoWriteByte(byte)
-        byte += 1
+        byte = 0
+        while (byte < 5) {
+          fifoWriteByte(byte)
+          byte += 1
+        }
 
         while(dut.io.empty.toBoolean == false) {
           fifoReadByte()
@@ -139,7 +133,7 @@ object FifoSim {
       }
 
       println("------------------------------------------------")
-      println("TEST 4: Read and write simultaneously, starting from empty FIFO")
+      println("TEST 4: Read and write simultaneously, starting from not empty FIFO")
       dut.clockDomain.assertReset();
       dut.clockDomain.disassertReset();
       fifoWriteByte(0x10)
