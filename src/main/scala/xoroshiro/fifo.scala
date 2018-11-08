@@ -4,45 +4,62 @@ import Xoroshiro._
 import spinal.core._
 import spinal.lib._
 
-class Fifo extends Component {
+
+class Fifo(width: Int, depth: Int) extends Component {
+
+  val addressWidth = (scala.math.log(depth) / scala.math.log(2)).toInt
+
   val io = new Bundle {
-    val dataIn = in UInt (8 bits)
-    val dataOut = out UInt (8 bits)
+    val dataIn = in UInt (width bits)
+    val dataOut = out UInt (width bits)
     val read = in Bool
     val write = in Bool
     val full = out Bool
     val empty = out Bool
   }
 
-  val mem = Mem(Bits(8 bits), wordCount = 32)
-  val head = Reg(UInt (5 bits)) init (0)
-  val tail = Reg(UInt (5 bits)) init (0)
-  val count = Reg(UInt (5 bits)) init (0)
+  val mem = Mem(Bits(width bits), wordCount = depth)
+  val head = Reg(UInt (addressWidth  bits )) init (0)
+  val tail = Reg(UInt (addressWidth  bits)) init (0)
+  val full = Reg(Bool) init False
+  val empty = Reg(Bool) init True
 
-  mem.write(head, io.dataIn.asBits, (!(count === 31)) & io.write)
+  mem.write(head, io.dataIn.asBits, !full & io.write)
   io.dataOut := U(mem.readAsync(tail))
 
   when (io.write && !io.read) {
-    when (!(count === 31)) {
-      count := count + 1
+    when (!full) {
       head := head + 1
+      full := ((head + 1) === tail)
+      empty := False
     }
   }
 
   when (!io.write && io.read) {
-    when (!(count === 0)) {
-      count := count - 1
+    when (!empty) {
       tail := tail + 1
+      empty := (tail + 1  === head)
+      full := False
     }
   }
 
-  when (io.write && io.read) {
-    head := head + 1
-    tail := tail + 1
+  when (io.write & io.read) {
+    when (full) {
+      tail := tail + 1
+      full := False
+    }
+    when (empty) {
+      head := head + 1
+      empty := False
+    }
+    when (!full & !empty) {
+      tail := tail + 1
+      head := head + 1
+    }
   }
 
-  io.empty := (count === 0)
-  io.full := (count === 31)
+  io.empty := empty
+  io.full := full
 }
 
 

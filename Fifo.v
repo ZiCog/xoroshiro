@@ -1,5 +1,5 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
-// Date      : 06/11/2018, 13:03:02
+// Date      : 08/11/2018, 17:10:47
 // Component : Fifo
 
 
@@ -12,61 +12,63 @@ module Fifo (
       output  io_empty,
       input   clk,
       input   reset);
-  reg [7:0] _zz_2;
-  wire [7:0] _zz_3;
-  wire  _zz_4;
-  reg [4:0] head;
-  reg [4:0] tail;
-  reg  empty;
+  wire [7:0] _zz_1;
+  wire [6:0] _zz_2;
+  wire [6:0] _zz_3;
+  wire [7:0] _zz_4;
+  wire  _zz_5;
+  reg [6:0] head;
+  reg [6:0] tail;
   reg  full;
-  reg [4:0] count;
-  reg [7:0] dataOut;
-  wire  _zz_1;
-  reg [7:0] mem [0:31];
-  assign _zz_3 = io_dataIn;
-  assign _zz_4 = 1'b1;
+  reg  empty;
+  reg [7:0] mem [0:127];
+  assign _zz_2 = (head + (7'b0000001));
+  assign _zz_3 = (tail + (7'b0000001));
+  assign _zz_4 = io_dataIn;
+  assign _zz_5 = ((! full) && io_write);
   always @ (posedge clk) begin
-    if(_zz_4) begin
-      mem[head] <= _zz_3;
+    if(_zz_5) begin
+      mem[head] <= _zz_4;
     end
   end
 
-  always @ (posedge clk) begin
-    if(_zz_1) begin
-      _zz_2 <= mem[tail];
-    end
-  end
-
-  assign io_dataOut = dataOut;
+  assign _zz_1 = mem[tail];
+  assign io_dataOut = _zz_1;
   assign io_empty = empty;
   assign io_full = full;
-  assign _zz_1 = 1'b1;
   always @ (posedge clk or posedge reset) begin
     if (reset) begin
-      head <= (5'b00000);
-      tail <= (5'b00000);
-      empty <= 1'b1;
+      head <= (7'b0000000);
+      tail <= (7'b0000000);
       full <= 1'b0;
-      count <= (5'b00000);
-      dataOut <= (8'b00000000);
+      empty <= 1'b1;
     end else begin
       if((io_write && (! io_read)))begin
-        if((! (count == (5'b11111))))begin
-          count <= (count + (5'b00001));
-          head <= (head + (5'b00001));
+        if((! full))begin
+          head <= (head + (7'b0000001));
+          full <= (_zz_2 == tail);
           empty <= 1'b0;
-        end else begin
-          full <= 1'b1;
         end
       end
       if(((! io_write) && io_read))begin
-        if((! (count == (5'b00000))))begin
-          dataOut <= _zz_2;
-          count <= (count - (5'b00001));
-          tail <= (tail - (5'b00001));
-        end else begin
-          empty <= 1'b1;
-          dataOut <= (8'b00000000);
+        if((! empty))begin
+          tail <= (tail + (7'b0000001));
+          empty <= (_zz_3 == head);
+          full <= 1'b0;
+        end
+      end
+      if((io_write && io_read))begin
+        if(full)begin
+          tail <= (tail + (7'b0000001));
+          full <= 1'b0;
+        end
+        if(empty)begin
+          head <= (head + (7'b0000001));
+          empty <= 1'b0;
+        end
+        if(((! full) && (! empty)))begin
+          tail <= (tail + (7'b0000001));
+          head <= (head + (7'b0000001));
         end
       end
     end

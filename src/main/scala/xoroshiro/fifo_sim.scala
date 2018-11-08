@@ -12,8 +12,8 @@ object FifoSim {
   def main(args: Array[String]) {
 
     val compiled = SimConfig.withWave.compile {
-      val dut = new Fifo
-      dut.count.simPublic()
+      val dut = new Fifo(8, 64)
+      //dut.count.simPublic()
       dut.head.simPublic()
       dut.tail.simPublic()
       dut
@@ -21,6 +21,7 @@ object FifoSim {
     compiled.doSim("Fifo") { dut =>
 
       def fifoWriteByte(byte: Int): Unit@suspendable = {
+        println(f"Writing: ${byte}%02x")
         dut.io.dataIn #= byte
         dut.io.write #= true
         dut.io.read #= false
@@ -32,6 +33,15 @@ object FifoSim {
         dut.io.read #= true
         dut.io.write #= false
         fifoTick()
+        fifoPrintSignals("Reading: ")
+      }
+
+      def fifoReadWriteByte(byte: Int): Unit@suspendable = {
+        dut.io.dataIn #= byte
+        dut.io.read #= true
+        dut.io.write #= true
+        fifoTick()
+        fifoPrintSignals("Read/Write: ")
       }
 
       def fifoNullOp(): Unit@suspendable = {
@@ -39,16 +49,18 @@ object FifoSim {
         dut.io.read #= false
         dut.io.write #= false
         fifoTick()
+        fifoPrintSignals("")
       }
 
-
-      def fifoPrintSignals(): Unit = {
-        print(f"count: ${dut.count.toInt}%02x, ")
+      def fifoPrintSignals(title: String): Unit = {
+        print(title)
         print(f"head: ${dut.head.toInt}%02x, ")
         print(f"tail: ${dut.tail.toInt}%02x, ")
         print(f"full: ${dut.io.full.toBoolean}, ")
         print(f"empty: ${dut.io.empty.toBoolean}, ")
-        print(f"dataOut: ${dut.io.dataOut.toInt}%02x, ")
+        if (dut.io.empty.toBoolean == false) {
+          print(f"dataOut: ${dut.io.dataOut.toInt}%02x, ")
+        }
         println()
       }
 
@@ -66,41 +78,21 @@ object FifoSim {
       dut.clockDomain.waitRisingEdge()
       dut.clockDomain.waitRisingEdge()
 
-      println("TEST 0: Check full and empty signals")
-      println("Initial signals:")
-      fifoPrintSignals()
-      println("Filling:")
-      var loops = 0
-      while (loops <= 32) {
-        fifoWriteByte(loops)
-        fifoPrintSignals()
-        loops += 1
-      }
-      println("Emptying:")
-      loops = 0
-      while (loops <= 32) {
-        fifoReadByte()
-        fifoPrintSignals()
-        loops += 1
-      }
-      println("------------------------------------------------")
 
+      println("------------------------------------------------")
       println("TEST 1: Write then read one byte to/from fifo at a time...")
-      loops = 0
+      var loops = 0
       while (loops < 256) {
         // Write one byte to fifo
-        println(f"Writing: ${loops}%02x")
         fifoWriteByte(loops)
 
         // Read one byte from fifo
-        println(f"Reading: ${loops}%02x ?")
         fifoReadByte()
 
-        // What did we get ?
-        fifoPrintSignals()
         loops += 1
       }
 
+      println("------------------------------------------------")
       println("TEST 2: Write then read bytes to/from fifo 12 at a time...")
       loops = 0
       var byte = 0
@@ -108,7 +100,6 @@ object FifoSim {
         // Write 12 bytes to fifo
         var bytes = 0
         while (bytes < 12) {
-          println(f"Writing: ${byte}%02x")
           fifoWriteByte(byte)
           byte += 1
           bytes += 1
@@ -120,87 +111,47 @@ object FifoSim {
         while (bytes < 12) {
           fifoReadByte()
 
-          // What did we get ?
-          fifoPrintSignals()
-          fifoNullOp()
           bytes += 1
         }
         loops += 1
       }
 
-      println("TEST 3: Read and write fifo simultaneously")
-      while (loops < 9) {
-        println("Reading and writing fifo:")
-        var data = loops
-        var inCnt = 0
-        while (inCnt < 31) {
-
-          // Read and Write at the same time!
-          dut.io.dataIn #= data
-          dut.io.write #= true
-          dut.io.read #= true
-          fifoTick()
-          /*
-          print(f"count: ${dut.count.toInt}%02x, ")
-          print(f"head: ${dut.head.toInt}%02x, ")
-          print(f"tail: ${dut.tail.toInt}%02x, ")
-          print(f"full: ${dut.io.full.toBoolean}, ")
-          print(f"empty: ${dut.io.empty.toBoolean}, ")
-          print(f"dataOut: ${dut.io.dataOut.toInt}%02x, ")
-          println()
-
-          // Do nothing
-          dut.io.dataIn #= data
-          dut.io.write #= false
-          dut.io.read #= false
-          dut.clockDomain.waitRisingEdge()
-*/
-
-          fifoNullOp()
-          print(f"count: ${dut.count.toInt}%02x, ")
-          print(f"head: ${dut.head.toInt}%02x, ")
-          print(f"tail: ${dut.tail.toInt}%02x, ")
-          print(f"full: ${dut.io.full.toBoolean}, ")
-          print(f"empty: ${dut.io.empty.toBoolean}, ")
-          print(f"dataOut: ${dut.io.dataOut.toInt}%02x, ")
-          println()
-
-          inCnt = inCnt + 1
-        }
-
-        loops += 1
-      }
-
-      println("TEST 4: ....")
+      println("------------------------------------------------")
+      println("TEST 3: Test the empty flag")
       loops = 0
       byte = 0
       while (loops < 20) {
-        println(f"Writing: ${byte}%02x")
         fifoWriteByte(byte)
         byte += 1
-        println(f"Writing: ${byte}%02x")
         fifoWriteByte(byte)
         byte += 1
-        println(f"Writing: ${byte}%02x")
         fifoWriteByte(byte)
         byte += 1
-        println(f"Writing: ${byte}%02x")
         fifoWriteByte(byte)
         byte += 1
-        println(f"Writing: ${byte}%02x")
         fifoWriteByte(byte)
         byte += 1
 
         while(dut.io.empty.toBoolean == false) {
-          fifoNullOp()
           fifoReadByte()
-          if (dut.io.empty.toBoolean == false) {
-            fifoPrintSignals()
-          }
         }
-
         loops += 1
       }
+
+      println("------------------------------------------------")
+      println("TEST 4: Read and write simultaneously, starting from empty FIFO")
+      dut.clockDomain.assertReset();
+      dut.clockDomain.disassertReset();
+      fifoWriteByte(0x10)
+      fifoWriteByte(0x11)
+      fifoWriteByte(0x12)
+      fifoReadWriteByte(0x13)
+      fifoReadWriteByte(0x14)
+      fifoReadWriteByte( 0x15)
+      fifoReadByte()
+      fifoReadByte()
+      fifoReadByte()
+
     }
   }
 }

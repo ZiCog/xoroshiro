@@ -167,7 +167,7 @@ object XoroshiroVerilog {
     SpinalVerilog(new EdgeDetect_)
     SpinalVerilog(new SlowClock)
     SpinalVerilog(new AsyncReceiver)
-    SpinalVerilog(new Fifo)
+    SpinalVerilog(new Fifo(8, 64))
   }
 }
 
