@@ -6,9 +6,6 @@ import spinal.lib._
 
 
 class Fifo(width: Int, depth: Int) extends Component {
-
-  val addressWidth = (scala.math.log(depth) / scala.math.log(2)).toInt
-
   val io = new Bundle {
     val dataIn = in UInt (width bits)
     val dataOut = out UInt (width bits)
@@ -17,6 +14,8 @@ class Fifo(width: Int, depth: Int) extends Component {
     val full = out Bool
     val empty = out Bool
   }
+
+  val addressWidth = (scala.math.log(depth) / scala.math.log(2)).toInt
 
   val mem = Mem(Bits(width bits), wordCount = depth)
   val head = Reg(UInt (addressWidth  bits )) init (0)

@@ -13,7 +13,6 @@ object FifoSim {
 
     val compiled = SimConfig.withWave.compile {
       val dut = new Fifo(8, 64)
-      //dut.count.simPublic()
       dut.head.simPublic()
       dut.tail.simPublic()
       dut
