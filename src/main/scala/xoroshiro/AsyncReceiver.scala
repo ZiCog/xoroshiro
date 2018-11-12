@@ -19,8 +19,18 @@ class AsyncReceiver extends Component {
   val bitTimer = Reg(UInt(6 bits)) init (0)
   val bitCount = Reg(UInt(3 bits)) init (0)
   val shifter = Reg(UInt(8 bits)) init (0)
-  val buffer = Reg(UInt(8 bits)) init (0)
-  val bufferFull = Reg(Bool) init False
+
+  // val buffer = Reg(UInt(8 bits)) init (0)
+  val mem = Mem(Bits(8 bits), wordCount = 32)
+  val head = Reg(UInt (5 bits )) init (0)
+  val tail = Reg(UInt (5 bits)) init (0)
+  val full = Reg(Bool) init False
+  val empty = Reg(Bool) init True
+
+  val headNext = Reg(UInt (5 bits )) init (0)
+  val tailNext = Reg(UInt (5 bits )) init (0)
+  headNext := head + 1
+  tailNext := tail + 1
 
   val baudClockX64Edge = new EdgeDetect_
   baudClockX64Edge.io.trigger := io.baudClockX64
@@ -63,8 +73,13 @@ class AsyncReceiver extends Component {
         // Check stop bit
         when(bitTimer === 0) {
           when(io.rx === True) {
-            buffer := shifter
-            bufferFull := True
+            // Write to FIFO memory
+            when (!full) {
+              mem.write(head, shifter.asBits)  //!full & io.write)
+              head := headNext
+              full := (headNext === tail)
+              empty := False
+            }
           }
           state := 0
         }
@@ -77,17 +92,41 @@ class AsyncReceiver extends Component {
   io.mem_rdata := 0
   io.mem_ready := False
 
+  val memWaitState = Reg(UInt (2 bits)) init (0)
+  val mem_rdata = Reg(UInt (8 bits )) init (0)
+
   when(io.mem_valid & io.enable) {
-    io.mem_ready := True
-    switch(io.mem_addr) {
-      is(U"0000") {
-        io.mem_rdata := buffer.resize(32)
-        bufferFull := False
+    switch (memWaitState) {
+      is (0) {
+        switch(io.mem_addr) {
+          is(U"0000") {
+            // Read from FIFO
+            when(!empty) {
+              mem_rdata := U(mem.readAsync(tail))
+              tail := tailNext
+              empty := tailNext === head
+              full := False
+            }
+          }
+          is(U"0100") {
+            //io.mem_rdata := bufferFull.asUInt.resize(32)
+            mem_rdata := (!empty).asUInt.resize(8)
+          }
+          default {
+          }
+        }
+        memWaitState := 1
       }
-      is(U"0100") {
-        io.mem_rdata := bufferFull.asUInt.resize(32)
+      is (1) {
+        memWaitState := 2
       }
-      default {
+      is (2) {
+        memWaitState := 3
+      }
+      is (3) {
+        io.mem_rdata := mem_rdata.resize(32)
+        io.mem_ready := True
+        memWaitState := 0
       }
     }
   }

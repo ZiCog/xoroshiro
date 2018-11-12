@@ -17,29 +17,13 @@ object AsyncReceiverSim {
       dut.bitCount.simPublic()
       dut.shifter.simPublic()
       dut.bitTimer.simPublic()
+      dut.head.simPublic()
+      dut.tail.simPublic()
+      dut.full.simPublic()
+      dut.empty.simPublic()
       dut
     }
     compiled.doSim("AsyncReceiver") { dut =>
-
-      def initDutSignals (): Unit = {
-        dut.io.enable #= false
-        dut.io.mem_valid #= false
-        dut.io.mem_addr #= 0
-        dut.io.baudClockX64 #= false
-        dut.io.rx #= true
-      }
-
-      def busToRead(address:Int) {
-        dut.io.enable #= true
-        dut.io.mem_valid #= true
-        dut.io.mem_addr #= address
-      }
-
-      def busToIdle() {
-        dut.io.enable #= false
-        dut.io.mem_valid #= false
-        dut.io.mem_addr #= 0
-      }
 
       var baudClock64Count = 0
       var baudClcokDiv = 0
@@ -59,21 +43,16 @@ object AsyncReceiverSim {
         }
       }
 
-      // Fork a process to generate the reset and the clock on the dut
-      dut.clockDomain.forkStimulus(period = 10)
+      def initDutSignals (): Unit = {
+        dut.io.enable #= false
+        dut.io.mem_valid #= false
+        dut.io.mem_addr #= 0
+        dut.io.baudClockX64 #= false
+        dut.io.rx #= true
+      }
 
-      var modelState = 0
-
-      initDutSignals()
-
-      var idx = 0
-      while (idx < 3000) {
-        generateBaudClock64()
-
-        busToRead(4)
-        dut.clockDomain.waitRisingEdge()
-        // Read outputs
-        print(f"clock: ${idx}%08d, ")
+      def printSignals(title: String): Unit = {
+        print(title)
         print(f"baudclkCnt: ${baudClock64Count}%08d, ")
         print(f"rx: ${dut.io.rx.toBoolean}, ")
         print(f"state: ${dut.state.toInt}%08d, ")
@@ -82,82 +61,111 @@ object AsyncReceiverSim {
         print(f"shifter: ${dut.shifter.toInt}%08x, ")
         print(f"data: ${dut.io.mem_rdata.toLong}%08x")
         println()
+      }
 
-        busToIdle()
+      def busRead(address:Int): Unit@suspendable = {
+        dut.io.enable #= true
+        dut.io.mem_valid #= true
+        dut.io.mem_addr #= address
+        while (!dut.io.mem_ready.toBoolean) {
+          dut.clockDomain.waitRisingEdge()
+        }
+        printSignals("Reading")
+        dut.io.enable #= false
+        dut.io.mem_valid #= false
+        dut.io.mem_addr #= 0
         dut.clockDomain.waitRisingEdge()
+      }
+
+      def waitOneBitTime(): Unit@suspendable = {
+        var count = 0
+        var baudClockX64 = false
+
+        while (count < 64) {
+          dut.io.baudClockX64 #= baudClockX64
+          dut.clockDomain.waitRisingEdge(4)
+          baudClockX64 = !baudClockX64
+          dut.io.baudClockX64 #= baudClockX64
+          dut.clockDomain.waitRisingEdge(4)
+          baudClockX64 = !baudClockX64
+
+          count += 1
+        }
+      }
+
+      // Fork a process to generate the reset and the clock on the dut
+      dut.clockDomain.forkStimulus(period = 10)
+
+      initDutSignals()
+
+      var idx = 0
+      while (idx < 40) {
+        //println("Reading RX status, expect 0")
+        busRead(4)
 
         // Start bit
-        if (baudClock64Count == 2 * 64) {
           dut.io.rx #= false
-        }
+          waitOneBitTime()
         // Bit 0
-        if (baudClock64Count == 3 * 64) {
           dut.io.rx #= false
-        }
+          waitOneBitTime()
         // Bit 1
-        if (baudClock64Count == 4 * 64) {
           dut.io.rx #= true
-        }
+          waitOneBitTime()
         // Bit 2
-        if (baudClock64Count == 5 * 64) {
           dut.io.rx #= false
-        }
+          waitOneBitTime()
         // Bit 3
-        if (baudClock64Count == 6 * 64) {
           dut.io.rx #= true
-        }
+          waitOneBitTime()
         // Bit 4
-        if (baudClock64Count == 7 * 64) {
           dut.io.rx #= false
-        }
+          waitOneBitTime()
         // Bit 5
-        if (baudClock64Count == 8 * 64) {
           dut.io.rx #= true
-        }
+          waitOneBitTime()
         // Bit 6
-        if (baudClock64Count == 9 * 64) {
           dut.io.rx #= false
-        }
+          waitOneBitTime()
         // Bit 7
-        if (baudClock64Count == 10 * 64) {
           dut.io.rx #= true
-        }
+          waitOneBitTime()
         // Stop bit
-        if (baudClock64Count == 11 * 64) {
           dut.io.rx #= true
-        }
+          waitOneBitTime()
 
         idx += 1
       }
 
+      idx = 0
+      while (idx < 40) {
 
-      busToRead(0)
-      dut.clockDomain.waitRisingEdge()
-      // Read outputs
-      println("Expect data = aa :")
-      print(f"clock: ${idx}%08d, ")
-      print(f"baudclkCnt: ${baudClock64Count}%08d, ")
-      print(f"rx: ${dut.io.rx.toBoolean}, ")
-      print(f"state: ${dut.state.toInt}%08d, ")
-      print(f"bitTimer: ${dut.bitTimer.toInt}%08d, ")
-      print(f"bitcnt: ${dut.bitCount.toInt}%08d, ")
-      print(f"shifter: ${dut.shifter.toInt}%08x, ")
-      print(f"data: ${dut.io.mem_rdata.toLong}%08x")
-      println()
+        print(f"empty: ${dut.empty.toBoolean}, ")
+        print(f"full: ${dut.full.toBoolean}, ")
+        print(f"head: ${dut.head.toInt}%08d, ")
+        print(f"tail: ${dut.tail.toInt}%08d, ")
+        println()
 
-      busToRead(4)
-      dut.clockDomain.waitRisingEdge()
-      // Read outputs
-      println("Expect full = 0 :")
-      print(f"clock: ${idx}%08d, ")
-      print(f"baudclkCnt: ${baudClock64Count}%08d, ")
-      print(f"rx: ${dut.io.rx.toBoolean}, ")
-      print(f"state: ${dut.state.toInt}%08d, ")
-      print(f"bitTimer: ${dut.bitTimer.toInt}%08d, ")
-      print(f"bitcnt: ${dut.bitCount.toInt}%08d, ")
-      print(f"shifter: ${dut.shifter.toInt}%08x, ")
-      print(f"full: ${dut.io.mem_rdata.toLong}%08x")
-      println()
+        println("Reading RX data, expect aa")
+        busRead(0)
+
+        print(f"empty: ${dut.empty.toBoolean}, ")
+        print(f"full: ${dut.full.toBoolean}, ")
+        print(f"head: ${dut.head.toInt}%08d, ")
+        print(f"tail: ${dut.tail.toInt}%08d, ")
+        println()
+
+        println("Reading RX status, expect 0")
+        busRead(4)
+
+        print(f"empty: ${dut.empty.toBoolean}, ")
+        print(f"full: ${dut.full.toBoolean}, ")
+        print(f"head: ${dut.head.toInt}%08d, ")
+        print(f"tail: ${dut.tail.toInt}%08d, ")
+        println()
+
+        idx += 1
+      }
     }
   }
 }
