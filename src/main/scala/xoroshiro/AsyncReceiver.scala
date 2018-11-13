@@ -20,17 +20,12 @@ class AsyncReceiver extends Component {
   val bitCount = Reg(UInt(3 bits)) init (0)
   val shifter = Reg(UInt(8 bits)) init (0)
 
-  // val buffer = Reg(UInt(8 bits)) init (0)
-  val mem = Mem(Bits(8 bits), wordCount = 32)
-  val head = Reg(UInt (5 bits )) init (0)
-  val tail = Reg(UInt (5 bits)) init (0)
-  val full = Reg(Bool) init False
-  val empty = Reg(Bool) init True
+  val buffer = Reg(UInt(8 bits)) init (0)
+  val bufferFull = Reg(Bool) init (False)
 
-  val headNext = Reg(UInt (5 bits )) init (0)
-  val tailNext = Reg(UInt (5 bits )) init (0)
-  headNext := head + 1
-  tailNext := tail + 1
+  val fifo = new Fifo(width = 8, depth = 32)
+  fifo.io.dataIn := buffer
+  fifo.io.write := False
 
   val baudClockX64Edge = new EdgeDetect_
   baudClockX64Edge.io.trigger := io.baudClockX64
@@ -73,12 +68,9 @@ class AsyncReceiver extends Component {
         // Check stop bit
         when(bitTimer === 0) {
           when(io.rx === True) {
-            // Write to FIFO memory
-            when (!full) {
-              mem.write(head, shifter.asBits)  //!full & io.write)
-              head := headNext
-              full := (headNext === tail)
-              empty := False
+            when (!bufferFull) {
+              buffer := shifter
+              bufferFull := True
             }
           }
           state := 0
@@ -87,46 +79,50 @@ class AsyncReceiver extends Component {
     }
   }
 
+  when (bufferFull) {
+    fifo.io.write := True
+    bufferFull := False
+  }
+
+
   // Bus interface
   // Wire-ORed output bus
   io.mem_rdata := 0
   io.mem_ready := False
 
-  val memWaitState = Reg(UInt (2 bits)) init (0)
-  val mem_rdata = Reg(UInt (8 bits )) init (0)
+  val waitState = Reg(UInt(2 bits)) init (0)
+
+  fifo.io.read := False
 
   when(io.mem_valid & io.enable) {
-    switch (memWaitState) {
-      is (0) {
-        switch(io.mem_addr) {
-          is(U"0000") {
+    switch(io.mem_addr) {
+      is(U"0000") {
+        switch (waitState) {
+          is (0) {
             // Read from FIFO
-            when(!empty) {
-              mem_rdata := U(mem.readAsync(tail))
-              tail := tailNext
-              empty := tailNext === head
-              full := False
+            when(!fifo.io.empty) {
+              io.mem_rdata := fifo.io.dataOut.resize(32)
+              io.mem_ready := True
+              waitState := 1
+            } otherwise {
+              waitState := 2
             }
           }
-          is(U"0100") {
-            //io.mem_rdata := bufferFull.asUInt.resize(32)
-            mem_rdata := (!empty).asUInt.resize(8)
+          is (1) {
+            fifo.io.read := True
+            waitState := 2
           }
-          default {
+          is (2) {
+            waitState := 3
+          }
+          is (3) {
+            waitState := 0
           }
         }
-        memWaitState := 1
       }
-      is (1) {
-        memWaitState := 2
-      }
-      is (2) {
-        memWaitState := 3
-      }
-      is (3) {
-        io.mem_rdata := mem_rdata.resize(32)
+      is(U"0100") {
+        io.mem_rdata := (!fifo.io.empty).asUInt.resize(32)
         io.mem_ready := True
-        memWaitState := 0
       }
     }
   }
