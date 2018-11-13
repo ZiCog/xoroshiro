@@ -1,7 +1,80 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
-// Date      : 12/11/2018, 13:31:54
+// Date      : 13/11/2018, 16:39:49
 // Component : AsyncReceiver
 
+
+module Fifo (
+      input  [7:0] io_dataIn,
+      output [7:0] io_dataOut,
+      input   io_read,
+      input   io_write,
+      output  io_full,
+      output  io_empty,
+      input   clk,
+      input   reset);
+  wire [7:0] _zz_1;
+  wire [4:0] _zz_2;
+  wire [4:0] _zz_3;
+  wire [7:0] _zz_4;
+  wire  _zz_5;
+  reg [4:0] head;
+  reg [4:0] tail;
+  reg  full;
+  reg  empty;
+  reg [7:0] mem [0:31];
+  assign _zz_2 = (head + (5'b00001));
+  assign _zz_3 = (tail + (5'b00001));
+  assign _zz_4 = io_dataIn;
+  assign _zz_5 = ((! full) && io_write);
+  always @ (posedge clk) begin
+    if(_zz_5) begin
+      mem[head] <= _zz_4;
+    end
+  end
+
+  assign _zz_1 = mem[tail];
+  assign io_dataOut = _zz_1;
+  assign io_empty = empty;
+  assign io_full = full;
+  always @ (posedge clk or posedge reset) begin
+    if (reset) begin
+      head <= (5'b00000);
+      tail <= (5'b00000);
+      full <= 1'b0;
+      empty <= 1'b1;
+    end else begin
+      if((io_write && (! io_read)))begin
+        if((! full))begin
+          head <= (head + (5'b00001));
+          full <= (_zz_2 == tail);
+          empty <= 1'b0;
+        end
+      end
+      if(((! io_write) && io_read))begin
+        if((! empty))begin
+          tail <= (tail + (5'b00001));
+          empty <= (_zz_3 == head);
+          full <= 1'b0;
+        end
+      end
+      if((io_write && io_read))begin
+        if(full)begin
+          tail <= (tail + (5'b00001));
+          full <= 1'b0;
+        end
+        if(empty)begin
+          head <= (head + (5'b00001));
+          empty <= 1'b0;
+        end
+        if(((! full) && (! empty)))begin
+          tail <= (tail + (5'b00001));
+          head <= (head + (5'b00001));
+        end
+      end
+    end
+  end
+
+endmodule
 
 module EdgeDetect_ (
       input   io_trigger,
@@ -30,86 +103,78 @@ module AsyncReceiver (
       input   io_rx,
       input   clk,
       input   reset);
-  wire [7:0] _zz_2;
-  wire  _zz_3;
+  reg  _zz_1;
+  reg  _zz_2;
+  wire [7:0] _zz_3;
   wire  _zz_4;
   wire  _zz_5;
   wire  _zz_6;
   wire  _zz_7;
-  wire [0:0] _zz_8;
-  wire [7:0] _zz_9;
-  reg  _zz_1;
+  wire  _zz_8;
+  wire [0:0] _zz_9;
   reg [1:0] state;
   reg [5:0] bitTimer;
   reg [2:0] bitCount;
   reg [7:0] shifter;
-  reg [4:0] head;
-  reg [4:0] tail;
-  reg  full;
-  reg  empty;
-  reg [4:0] headNext;
-  reg [4:0] tailNext;
+  reg [7:0] buffer_1;
+  reg  bufferFull;
   wire  baudClockEdge;
-  reg [1:0] memWaitState;
-  reg [7:0] mem_rdata;
-  reg [7:0] mem [0:31];
-  assign _zz_4 = (io_rx == 1'b1);
-  assign _zz_5 = (bitTimer == (6'b000000));
-  assign _zz_6 = (! full);
-  assign _zz_7 = (io_mem_valid && io_enable);
-  assign _zz_8 = (! empty);
-  assign _zz_9 = shifter;
-  always @ (posedge clk) begin
-    if(_zz_1) begin
-      mem[head] <= _zz_9;
-    end
-  end
-
-  assign _zz_2 = mem[tail];
+  reg [1:0] waitState;
+  assign _zz_7 = (! _zz_5);
+  assign _zz_8 = (io_mem_valid && io_enable);
+  assign _zz_9 = (! _zz_5);
+  Fifo fifo_1 ( 
+    .io_dataIn(buffer_1),
+    .io_dataOut(_zz_3),
+    .io_read(_zz_1),
+    .io_write(_zz_2),
+    .io_full(_zz_4),
+    .io_empty(_zz_5),
+    .clk(clk),
+    .reset(reset) 
+  );
   EdgeDetect_ baudClockX64Edge ( 
     .io_trigger(io_baudClockX64),
-    .io_Q(_zz_3),
+    .io_Q(_zz_6),
     .clk(clk),
     .reset(reset) 
   );
   always @ (*) begin
-    _zz_1 = 1'b0;
-    if(baudClockEdge)begin
-      case(state)
-        2'b00 : begin
-        end
-        2'b01 : begin
-        end
-        2'b10 : begin
-        end
-        default : begin
-          if(_zz_5)begin
-            if(_zz_4)begin
-              if(_zz_6)begin
-                _zz_1 = 1'b1;
-              end
-            end
-          end
-        end
-      endcase
+    _zz_2 = 1'b0;
+    if(bufferFull)begin
+      _zz_2 = 1'b1;
     end
   end
 
-  assign baudClockEdge = _zz_3;
+  assign baudClockEdge = _zz_6;
   always @ (*) begin
     io_mem_rdata = (32'b00000000000000000000000000000000);
     io_mem_ready = 1'b0;
-    if(_zz_7)begin
-      case(memWaitState)
-        2'b00 : begin
+    _zz_1 = 1'b0;
+    if(_zz_8)begin
+      case(io_mem_addr)
+        4'b0000 : begin
+          case(waitState)
+            2'b00 : begin
+              if(_zz_7)begin
+                io_mem_rdata = {24'd0, _zz_3};
+                io_mem_ready = 1'b1;
+              end
+            end
+            2'b01 : begin
+              _zz_1 = 1'b1;
+            end
+            2'b10 : begin
+            end
+            default : begin
+            end
+          endcase
         end
-        2'b01 : begin
-        end
-        2'b10 : begin
+        4'b0100 : begin
+          io_mem_rdata = {31'd0, _zz_9};
+          io_mem_ready = 1'b1;
         end
         default : begin
-          io_mem_rdata = {24'd0, mem_rdata};
-          io_mem_ready = 1'b1;
         end
       endcase
     end
@@ -121,17 +186,10 @@ module AsyncReceiver (
       bitTimer <= (6'b000000);
       bitCount <= (3'b000);
       shifter <= (8'b00000000);
-      head <= (5'b00000);
-      tail <= (5'b00000);
-      full <= 1'b0;
-      empty <= 1'b1;
-      headNext <= (5'b00000);
-      tailNext <= (5'b00000);
-      memWaitState <= (2'b00);
-      mem_rdata <= (8'b00000000);
+      buffer_1 <= (8'b00000000);
+      bufferFull <= 1'b0;
+      waitState <= (2'b00);
     end else begin
-      headNext <= (head + (5'b00001));
-      tailNext <= (tail + (5'b00001));
       if(baudClockEdge)begin
         bitTimer <= (bitTimer - (6'b000001));
         case(state)
@@ -161,12 +219,11 @@ module AsyncReceiver (
             end
           end
           default : begin
-            if(_zz_5)begin
-              if(_zz_4)begin
-                if(_zz_6)begin
-                  head <= headNext;
-                  full <= (headNext == tail);
-                  empty <= 1'b0;
+            if((bitTimer == (6'b000000)))begin
+              if((io_rx == 1'b1))begin
+                if((! bufferFull))begin
+                  buffer_1 <= shifter;
+                  bufferFull <= 1'b1;
                 end
               end
               state <= (2'b00);
@@ -174,34 +231,34 @@ module AsyncReceiver (
           end
         endcase
       end
-      if(_zz_7)begin
-        case(memWaitState)
-          2'b00 : begin
-            case(io_mem_addr)
-              4'b0000 : begin
-                if((! empty))begin
-                  mem_rdata <= _zz_2;
-                  tail <= tailNext;
-                  empty <= (tailNext == head);
-                  full <= 1'b0;
+      if(bufferFull)begin
+        bufferFull <= 1'b0;
+      end
+      if(_zz_8)begin
+        case(io_mem_addr)
+          4'b0000 : begin
+            case(waitState)
+              2'b00 : begin
+                if(_zz_7)begin
+                  waitState <= (2'b01);
+                end else begin
+                  waitState <= (2'b10);
                 end
               end
-              4'b0100 : begin
-                mem_rdata <= {7'd0, _zz_8};
+              2'b01 : begin
+                waitState <= (2'b10);
+              end
+              2'b10 : begin
+                waitState <= (2'b11);
               end
               default : begin
+                waitState <= (2'b00);
               end
             endcase
-            memWaitState <= (2'b01);
           end
-          2'b01 : begin
-            memWaitState <= (2'b10);
-          end
-          2'b10 : begin
-            memWaitState <= (2'b11);
+          4'b0100 : begin
           end
           default : begin
-            memWaitState <= (2'b00);
           end
         endcase
       end
