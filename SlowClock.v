@@ -1,5 +1,5 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
-// Date      : 13/11/2018, 16:39:49
+// Date      : 13/11/2018, 16:50:53
 // Component : SlowClock
 
 

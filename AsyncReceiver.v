@@ -1,5 +1,5 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
-// Date      : 13/11/2018, 16:39:49
+// Date      : 13/11/2018, 16:50:53
 // Component : AsyncReceiver
 
 
@@ -12,48 +12,58 @@ module Fifo (
       output  io_empty,
       input   clk,
       input   reset);
-  wire [7:0] _zz_1;
-  wire [4:0] _zz_2;
+  reg [7:0] _zz_2;
   wire [4:0] _zz_3;
-  wire [7:0] _zz_4;
-  wire  _zz_5;
+  wire [4:0] _zz_4;
+  wire [7:0] _zz_5;
+  wire  _zz_6;
+  reg [7:0] dataOut;
   reg [4:0] head;
   reg [4:0] tail;
   reg  full;
   reg  empty;
+  wire  _zz_1;
   reg [7:0] mem [0:31];
-  assign _zz_2 = (head + (5'b00001));
-  assign _zz_3 = (tail + (5'b00001));
-  assign _zz_4 = io_dataIn;
-  assign _zz_5 = ((! full) && io_write);
+  assign _zz_3 = (head + (5'b00001));
+  assign _zz_4 = (tail + (5'b00001));
+  assign _zz_5 = io_dataIn;
+  assign _zz_6 = ((! full) && io_write);
   always @ (posedge clk) begin
-    if(_zz_5) begin
-      mem[head] <= _zz_4;
+    if(_zz_6) begin
+      mem[head] <= _zz_5;
     end
   end
 
-  assign _zz_1 = mem[tail];
-  assign io_dataOut = _zz_1;
+  always @ (posedge clk) begin
+    if(_zz_1) begin
+      _zz_2 <= mem[tail];
+    end
+  end
+
+  assign _zz_1 = 1'b1;
+  assign io_dataOut = dataOut;
   assign io_empty = empty;
   assign io_full = full;
   always @ (posedge clk or posedge reset) begin
     if (reset) begin
+      dataOut <= (8'b00000000);
       head <= (5'b00000);
       tail <= (5'b00000);
       full <= 1'b0;
       empty <= 1'b1;
     end else begin
+      dataOut <= _zz_2;
       if((io_write && (! io_read)))begin
         if((! full))begin
           head <= (head + (5'b00001));
-          full <= (_zz_2 == tail);
+          full <= (_zz_3 == tail);
           empty <= 1'b0;
         end
       end
       if(((! io_write) && io_read))begin
         if((! empty))begin
           tail <= (tail + (5'b00001));
-          empty <= (_zz_3 == head);
+          empty <= (_zz_4 == head);
           full <= 1'b0;
         end
       end
@@ -120,8 +130,8 @@ module AsyncReceiver (
   reg  bufferFull;
   wire  baudClockEdge;
   reg [1:0] waitState;
-  assign _zz_7 = (! _zz_5);
-  assign _zz_8 = (io_mem_valid && io_enable);
+  assign _zz_7 = (io_mem_valid && io_enable);
+  assign _zz_8 = (! _zz_5);
   assign _zz_9 = (! _zz_5);
   Fifo fifo_1 ( 
     .io_dataIn(buffer_1),
@@ -151,12 +161,12 @@ module AsyncReceiver (
     io_mem_rdata = (32'b00000000000000000000000000000000);
     io_mem_ready = 1'b0;
     _zz_1 = 1'b0;
-    if(_zz_8)begin
+    if(_zz_7)begin
       case(io_mem_addr)
         4'b0000 : begin
           case(waitState)
             2'b00 : begin
-              if(_zz_7)begin
+              if(_zz_8)begin
                 io_mem_rdata = {24'd0, _zz_3};
                 io_mem_ready = 1'b1;
               end
@@ -234,12 +244,12 @@ module AsyncReceiver (
       if(bufferFull)begin
         bufferFull <= 1'b0;
       end
-      if(_zz_8)begin
+      if(_zz_7)begin
         case(io_mem_addr)
           4'b0000 : begin
             case(waitState)
               2'b00 : begin
-                if(_zz_7)begin
+                if(_zz_8)begin
                   waitState <= (2'b01);
                 end else begin
                   waitState <= (2'b10);

@@ -18,13 +18,14 @@ class Fifo(width: Int, depth: Int) extends Component {
   val addressWidth = (scala.math.log(depth) / scala.math.log(2)).toInt
 
   val mem = Mem(Bits(width bits), wordCount = depth)
+  val dataOut = Reg(UInt (width  bits )) init (0)
   val head = Reg(UInt (addressWidth  bits )) init (0)
   val tail = Reg(UInt (addressWidth  bits)) init (0)
   val full = Reg(Bool) init False
   val empty = Reg(Bool) init True
 
   mem.write(head, io.dataIn.asBits, !full & io.write)
-  io.dataOut := U(mem.readAsync(tail))
+  dataOut := U(mem.readAsync(tail))
 
   when (io.write && !io.read) {
     when (!full) {
@@ -57,6 +58,7 @@ class Fifo(width: Int, depth: Int) extends Component {
     }
   }
 
+  io.dataOut := dataOut
   io.empty := empty
   io.full := full
 }

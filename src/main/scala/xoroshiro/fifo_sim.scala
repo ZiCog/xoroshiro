@@ -80,10 +80,13 @@ object FifoSim {
 
       println("------------------------------------------------")
       println("TEST 1: Write then read one byte to/from fifo at a time...")
+      fifoNullOp()
       var loops = 0
       while (loops < 256) {
         // Write one byte to fifo
         fifoWriteByte(loops)
+
+        fifoNullOp()
 
         // Read one byte from fifo
         fifoReadByte()
@@ -108,8 +111,8 @@ object FifoSim {
         println(f"Reading 12 bytes:")
         bytes = 0
         while (bytes < 12) {
+          fifoNullOp()
           fifoReadByte()
-
           bytes += 1
         }
         loops += 1
@@ -126,6 +129,7 @@ object FifoSim {
         }
 
         while(dut.io.empty.toBoolean == false) {
+          fifoNullOp()
           fifoReadByte()
         }
         loops += 1
@@ -138,11 +142,17 @@ object FifoSim {
       fifoWriteByte(0x10)
       fifoWriteByte(0x11)
       fifoWriteByte(0x12)
+      fifoNullOp()
       fifoReadWriteByte(0x13)
+      fifoNullOp()
       fifoReadWriteByte(0x14)
+      fifoNullOp()
       fifoReadWriteByte( 0x15)
+      fifoNullOp()
       fifoReadByte()
+      fifoNullOp()
       fifoReadByte()
+      fifoNullOp()
       fifoReadByte()
 
     }
