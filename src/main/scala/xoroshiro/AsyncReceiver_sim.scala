@@ -17,10 +17,12 @@ object AsyncReceiverSim {
       dut.bitCount.simPublic()
       dut.shifter.simPublic()
       dut.bitTimer.simPublic()
+      /*
       dut.fifo.head.simPublic()
       dut.fifo.tail.simPublic()
       dut.fifo.full.simPublic()
       dut.fifo.empty.simPublic()
+      */
       dut
     }
     compiled.doSim("AsyncReceiver") { dut =>
@@ -138,26 +140,26 @@ object AsyncReceiverSim {
       }
 
       idx = 0
-      while (idx < 50) {
+      while (idx < 65) {
 
         println("Reading RX , expect aa")
         busRead(0)
-
+        /*
         print(f"empty: ${dut.fifo.empty.toBoolean}, ")
         print(f"full: ${dut.fifo.full.toBoolean}, ")
         print(f"head: ${dut.fifo.head.toInt}%08d, ")
         print(f"tail: ${dut.fifo.tail.toInt}%08d, ")
         println()
-
+        */
         println("Reading RX status, expect 0")
         busRead(4)
-
+        /*
         print(f"empty: ${dut.fifo.empty.toBoolean}, ")
         print(f"full: ${dut.fifo.full.toBoolean}, ")
         print(f"head: ${dut.fifo.head.toInt}%08d, ")
         print(f"tail: ${dut.fifo.tail.toInt}%08d, ")
         println()
-
+        */
         idx += 1
       }
     }
