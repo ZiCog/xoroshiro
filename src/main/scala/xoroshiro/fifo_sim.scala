@@ -12,12 +12,16 @@ object FifoSim {
   def main(args: Array[String]) {
 
     val compiled = SimConfig.withWave.compile {
-      val dut = new Fifo(8, 64)
+      val dut = new Fifo(8, 32)
       dut.head.simPublic()
       dut.tail.simPublic()
       dut
     }
     compiled.doSim("Fifo") { dut =>
+
+      def fifoTick(): Unit@suspendable = {
+        dut.clockDomain.waitRisingEdge()
+      }
 
       def fifoWriteByte(byte: Int): Unit@suspendable = {
         println(f"Writing: ${byte}%02x")
@@ -28,6 +32,13 @@ object FifoSim {
       }
 
       def fifoReadByte(): Unit@suspendable = {
+        while (dut.io.empty.toBoolean) {
+          dut.io.dataIn #= 0x66
+          dut.io.read #= false
+          dut.io.write #= false
+          fifoTick()
+          fifoPrintSignals("Empty: ")
+        }
         dut.io.dataIn #= 0x66
         dut.io.read #= true
         dut.io.write #= false
@@ -57,45 +68,50 @@ object FifoSim {
         print(f"tail: ${dut.tail.toInt}%02x, ")
         print(f"full: ${dut.io.full.toBoolean}, ")
         print(f"empty: ${dut.io.empty.toBoolean}, ")
-        if (dut.io.empty.toBoolean == false) {
-          print(f"dataOut: ${dut.io.dataOut.toInt}%02x, ")
-        }
+        print(f"dataOut: ${dut.io.dataOut.toInt}%02x, ")
         println()
       }
 
-      def fifoTick(): Unit@suspendable = {
-        dut.clockDomain.waitRisingEdge()
-      }
+
 
       // Fork a process to generate the reset and the clock on the dut
       dut.clockDomain.forkStimulus(period = 10)
 
-      dut.io.dataIn #= 10
-      dut.io.write #= false
-      dut.io.read #= false
-      dut.clockDomain.waitRisingEdge()
-      dut.clockDomain.waitRisingEdge()
-      dut.clockDomain.waitRisingEdge()
+      println("TEST 0: Write 40 bytes and see what happens")
+      var clocks = 0
+      while (clocks < 40) {
+        dut.io.dataIn #= clocks
+        dut.io.read #= false
+        dut.io.write #= true
+        fifoTick()
+        clocks += 1
+        fifoPrintSignals(f"${clocks}%02d) ")
+      }
 
 
       println("------------------------------------------------")
-      println("TEST 1: Write then read one byte to/from fifo at a time...")
-      fifoNullOp()
+      println("TEST 1: Read 40 bytes and see what happens")
+      clocks = 0
+      while (clocks < 40) {
+        dut.io.dataIn #= 0xaa
+        dut.io.read #= true
+        dut.io.write #= false
+        fifoTick()
+        clocks += 1
+        fifoPrintSignals(f"${clocks}%02d) ")
+      }
+
+      println("------------------------------------------------")
+      println("TEST 2: Write then read one byte to/from fifo at a time...")
       var loops = 0
       while (loops < 256) {
-        // Write one byte to fifo
         fifoWriteByte(loops)
-
-        fifoNullOp()
-
-        // Read one byte from fifo
         fifoReadByte()
-
         loops += 1
       }
 
       println("------------------------------------------------")
-      println("TEST 2: Write then read bytes to/from fifo 12 at a time...")
+      println("TEST 3: Write then read bytes to/from fifo 12 at a time...")
       loops = 0
       var byte = 0
       while (loops < 5) {
@@ -111,7 +127,6 @@ object FifoSim {
         println(f"Reading 12 bytes:")
         bytes = 0
         while (bytes < 12) {
-          fifoNullOp()
           fifoReadByte()
           bytes += 1
         }
@@ -119,7 +134,7 @@ object FifoSim {
       }
 
       println("------------------------------------------------")
-      println("TEST 3: Test the empty flag")
+      println("TEST 4: Test the empty flag")
       loops = 0
       while (loops < 20) {
         byte = 0
@@ -129,32 +144,24 @@ object FifoSim {
         }
 
         while(dut.io.empty.toBoolean == false) {
-          fifoNullOp()
           fifoReadByte()
         }
         loops += 1
       }
 
       println("------------------------------------------------")
-      println("TEST 4: Read and write simultaneously, starting from not empty FIFO")
-      dut.clockDomain.assertReset();
-      dut.clockDomain.disassertReset();
+      println("TEST 5: Read and write simultaneously, starting from an empty FIFO")
+      fifoNullOp()
       fifoWriteByte(0x10)
       fifoWriteByte(0x11)
       fifoWriteByte(0x12)
-      fifoNullOp()
       fifoReadWriteByte(0x13)
-      fifoNullOp()
       fifoReadWriteByte(0x14)
-      fifoNullOp()
       fifoReadWriteByte( 0x15)
-      fifoNullOp()
+      fifoReadByte()
+      fifoReadByte()
       fifoReadByte()
       fifoNullOp()
-      fifoReadByte()
-      fifoNullOp()
-      fifoReadByte()
-
     }
   }
 }
