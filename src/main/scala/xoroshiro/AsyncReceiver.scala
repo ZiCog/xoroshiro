@@ -22,13 +22,8 @@ class AsyncReceiver extends Component {
   val buffer = Reg(UInt(8 bits)) init (0)
   val bufferFull = Reg(Bool) init False
 
-  val baudClockX64Edge = new EdgeDetect_
-  baudClockX64Edge.io.trigger := io.baudClockX64
-  val baudClockEdge = Bool
-  baudClockEdge := baudClockX64Edge.io.Q
-
   // Rx state machine
-  when (baudClockEdge) {
+  when (io.baudClockX64.rise) {
     bitTimer := bitTimer - 1
     switch(state) {
       is(0) {
@@ -74,18 +69,21 @@ class AsyncReceiver extends Component {
 
   // Bus interface
   // Wire-ORed output bus
-  io.mem_rdata := 0
-  io.mem_ready := False
+  val rdata = Reg(UInt(8 bits)) init (0)
+  val ready = Reg(Bool) init (False)
+  val busCycle = io.mem_valid & io.enable
+  ready := busCycle
+  io.mem_rdata := Mux(busCycle, rdata.resize(32), U(0))
+  io.mem_ready := Mux(busCycle, ready, False)
 
-  when(io.mem_valid & io.enable) {
-    io.mem_ready := True
+  when(busCycle.rise) {
     switch(io.mem_addr) {
       is(U"0000") {
-        io.mem_rdata := buffer.resize(32)
+        rdata := buffer
         bufferFull := False
       }
       is(U"0100") {
-        io.mem_rdata := bufferFull.asUInt.resize(32)
+        rdata := bufferFull.asUInt.resize(8)
       }
       default {
       }
