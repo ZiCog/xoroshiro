@@ -48,10 +48,13 @@ class Fifo(width: Int, depth: Int) extends Component {
   when (io.write & io.read) {
     when (full) {
       tail := tail + 1
+      count := count - 1
       full := False
+
     }
     when (empty) {
       head := head + 1
+      count := count + 1
       empty := False
     }
     when (!full & !empty) {

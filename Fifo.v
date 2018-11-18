@@ -1,5 +1,5 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
-// Date      : 17/11/2018, 19:47:16
+// Date      : 18/11/2018, 16:11:21
 // Component : Fifo
 
 
@@ -60,10 +60,12 @@ module Fifo (
       if((io_write && io_read))begin
         if(full)begin
           tail <= (tail + (5'b00001));
+          count <= (count - (6'b000001));
           full <= 1'b0;
         end
         if(empty)begin
           head <= (head + (5'b00001));
+          count <= (count + (6'b000001));
           empty <= 1'b0;
         end
         if(((! full) && (! empty)))begin
