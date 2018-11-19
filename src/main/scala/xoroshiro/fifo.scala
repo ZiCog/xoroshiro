@@ -20,7 +20,6 @@ class Fifo(width: Int, depth: Int) extends Component {
   val mem = Mem(Bits(width bits), wordCount = depth)
   val head = Reg(UInt (addressWidth  bits )) init (0)
   val tail = Reg(UInt (addressWidth  bits)) init (0)
-  val count = Reg(UInt (addressWidth + 1  bits)) init (0)
   val full = Reg(Bool) init False
   val empty = Reg(Bool) init True
 
@@ -28,19 +27,17 @@ class Fifo(width: Int, depth: Int) extends Component {
   io.dataOut := U(mem.readAsync(tail))
 
   when (io.write && !io.read) {
-    when (count =/= depth) {
+    when (!full) {
       head := head + 1
-      count := count + 1
-      full := (count === depth - 1)
+      full := ((head + 1) === tail)
       empty := False
     }
   }
 
   when (!io.write && io.read) {
-    when (count =/= 0) {
+    when (!empty) {
       tail := tail + 1
-      count := count - 1
-      empty := (count === 1)
+      empty := (tail + 1  === head)
       full := False
     }
   }
@@ -48,13 +45,10 @@ class Fifo(width: Int, depth: Int) extends Component {
   when (io.write & io.read) {
     when (full) {
       tail := tail + 1
-      count := count - 1
       full := False
-
     }
     when (empty) {
       head := head + 1
-      count := count + 1
       empty := False
     }
     when (!full & !empty) {
