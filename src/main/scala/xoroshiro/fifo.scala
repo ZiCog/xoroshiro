@@ -26,7 +26,7 @@ class Fifo(width: Int, depth: Int) extends Component {
   mem.write(head, io.dataIn.asBits, !full & io.write)
   io.dataOut := U(mem.readAsync(tail))
 
-  when (io.write && !io.read) {
+  when (io.write.rise && !io.read) {
     when (!full) {
       head := head + 1
       full := ((head + 1) === tail)
@@ -34,7 +34,7 @@ class Fifo(width: Int, depth: Int) extends Component {
     }
   }
 
-  when (!io.write && io.read) {
+  when (!io.write && io.read.rise) {
     when (!empty) {
       tail := tail + 1
       empty := (tail + 1  === head)
@@ -42,7 +42,7 @@ class Fifo(width: Int, depth: Int) extends Component {
     }
   }
 
-  when (io.write & io.read) {
+  when (io.write.rise & io.read.rise) {
     when (full) {
       tail := tail + 1
       full := False
