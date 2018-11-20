@@ -13,8 +13,6 @@ class AsyncReceiver extends Component {
 
     val baudClockX64 = in Bool
     val rx = in Bool
-
-    val leds = out UInt (8 bits)
   }
 
   val state = Reg(UInt(2 bits)) init (0)
@@ -27,8 +25,7 @@ class AsyncReceiver extends Component {
   fifo.io.write := False
   fifo.io.dataIn := 0
 
-  val leds = Reg(UInt(8 bits)) init (0)
-  io.leds := leds
+  val leds = Reg(UInt(8 bits))
 
   val  baudClockX64Sync1 = Reg(Bool) init False
   val  baudClockX64Sync2 = Reg(Bool) init False

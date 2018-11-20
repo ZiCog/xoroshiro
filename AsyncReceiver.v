@@ -1,5 +1,5 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
-// Date      : 19/11/2018, 11:07:33
+// Date      : 20/11/2018, 11:45:12
 // Component : AsyncReceiver
 
 
@@ -95,7 +95,6 @@ module AsyncReceiver (
       output [31:0] io_mem_rdata,
       input   io_baudClockX64,
       input   io_rx,
-      output [7:0] io_leds,
       input   clk,
       input   reset);
   reg [7:0] _zz_3;
@@ -176,7 +175,6 @@ module AsyncReceiver (
     end
   end
 
-  assign io_leds = leds;
   assign busCycle = (io_mem_valid && io_enable);
   assign io_mem_rdata = (busCycle ? _zz_12 : (32'b00000000000000000000000000000000));
   assign io_mem_ready = (busCycle ? ready : 1'b0);
@@ -186,7 +184,6 @@ module AsyncReceiver (
       bitTimer <= (6'b000000);
       bitCount <= (3'b000);
       shifter <= (8'b00000000);
-      leds <= (8'b00000000);
       baudClockX64Sync1 <= 1'b0;
       baudClockX64Sync2 <= 1'b0;
       rdata <= (8'b00000000);
@@ -229,7 +226,6 @@ module AsyncReceiver (
           end
         endcase
       end
-      leds <= {6'd0, state};
       ready <= busCycle;
       if(_zz_10)begin
         case(io_mem_addr)
@@ -248,6 +244,7 @@ module AsyncReceiver (
 
   always @ (posedge clk) begin
     _zz_1 <= baudClockX64Sync2;
+    leds <= {6'd0, state};
     _zz_2 <= busCycle;
   end
 
