@@ -15,7 +15,7 @@ class AsyncReceiver extends Component {
     val rx = in Bool
   }
 
-  val state = Reg(UInt(2 bits)) init (0)
+  val state = Reg(UInt(3 bits)) init (0)
   val bitTimer = Reg(UInt(6 bits)) init (0)
   val bitCount = Reg(UInt(3 bits)) init (0)
   val shifter = Reg(UInt(8 bits)) init (0)
@@ -25,7 +25,7 @@ class AsyncReceiver extends Component {
   fifo.io.write := False
   fifo.io.dataIn := 0
 
-  val leds = Reg(UInt(8 bits))
+  val unused = Reg(UInt(8 bits))
 
   val  baudClockX64Sync1 = Reg(Bool) init False
   val  baudClockX64Sync2 = Reg(Bool) init False
@@ -69,18 +69,28 @@ class AsyncReceiver extends Component {
         // Check stop bit
         when(bitTimer === 0) {
           when(io.rx === True) {
-            when (!fifo.io.full) {
-              fifo.io.dataIn := shifter
-              fifo.io.write := True
-            }
+            state := 4
+          } otherwise {
+            state := 0
           }
-          state := 0
         }
+      }
+      is(4) {
+        // Got a byte write it to FIFO
+        when (!fifo.io.full) {
+          fifo.io.dataIn := shifter
+          fifo.io.write := True
+        }
+        state := 0
+      }
+      default {
+        state := 0
       }
     }
   }
 
-  leds := state.resize(8)
+  // FIXME: This is required to stop Quartus beaking the state machine !
+  unused := state.resize(8)
 
   // Bus interface
   // Wire-ORed output bus
