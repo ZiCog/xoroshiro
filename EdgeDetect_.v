@@ -1,5 +1,5 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
-// Date      : 22/11/2018, 06:44:16
+// Date      : 22/11/2018, 11:10:51
 // Component : EdgeDetect_
 
 
