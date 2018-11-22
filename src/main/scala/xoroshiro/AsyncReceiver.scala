@@ -23,7 +23,7 @@ class AsyncReceiver extends Component {
   val fifo = new Fifo(8, 32)
   fifo.io.read := False
   fifo.io.write := False
-  fifo.io.dataIn := 0
+  fifo.io.dataIn := shifter
 
   val  baudClockX64Sync1 = Reg(Bool) init False
   val  baudClockX64Sync2 = Reg(Bool) init False
@@ -34,58 +34,63 @@ class AsyncReceiver extends Component {
   // Using next to update state ensures Quartus infers the state machine correctly.
   state := next
 
+  val S0 = 0
+  val S1 = 1
+  val S2 = 2
+  val S3 = 3
+  val S4 = 4
+
   // Rx state machine
   when (baudClockX64Sync2.rise) {
     bitTimer := bitTimer - 1
     switch(state) {
-      is(0) {
+      is(S0) {
         // Waiting for falling edge of start bit
         when(io.rx === False) {
-          next := 1
+          next := S1
           bitTimer := 31
         }
       }
-      is(1) {
+      is(S1) {
         // Check valid start bit
         when(bitTimer === 0) {
           when(io.rx === False) {
             bitTimer := 63
-            next := 2
+            next := S2
           } otherwise {
-            next := 0
+            next := S0
           }
         }
       }
-      is(2) {
+      is(S2) {
         // Clock in data bits
         when(bitTimer === 0) {
           shifter(bitCount) := io.rx
           bitCount := bitCount + 1
           when(bitCount === 7) {
-            next := 3
+            next := S3
           }
         }
       }
-      is(3) {
+      is(S3) {
         // Check stop bit
         when(bitTimer === 0) {
           when(io.rx === True) {
-            next := 4
+            next := S4
           } otherwise {
-            next := 0
+            next := S0
           }
         }
       }
       is(4) {
         // Got a byte, write it to FIFO
         when (!fifo.io.full) {
-          fifo.io.dataIn := shifter
           fifo.io.write := True
         }
-        next := 0
+        next := S0
       }
       default {
-        next := 0
+        next := S0
       }
     }
   }
