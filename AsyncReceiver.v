@@ -1,5 +1,5 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
-// Date      : 21/11/2018, 07:37:31
+// Date      : 22/11/2018, 06:44:17
 // Component : AsyncReceiver
 
 
@@ -108,10 +108,10 @@ module AsyncReceiver (
   wire [31:0] _zz_11;
   wire [0:0] _zz_12;
   reg [2:0] state;
+  reg [2:0] next_1;
   reg [5:0] bitTimer;
   reg [2:0] bitCount;
   reg [7:0] shifter;
-  reg [7:0] unused;
   reg  baudClockX64Sync1;
   reg  baudClockX64Sync2;
   reg  _zz_1;
@@ -179,6 +179,7 @@ module AsyncReceiver (
   always @ (posedge clk or posedge reset) begin
     if (reset) begin
       state <= (3'b000);
+      next_1 <= (3'b000);
       bitTimer <= (6'b000000);
       bitCount <= (3'b000);
       shifter <= (8'b00000000);
@@ -189,12 +190,13 @@ module AsyncReceiver (
     end else begin
       baudClockX64Sync1 <= io_baudClockX64;
       baudClockX64Sync2 <= baudClockX64Sync1;
+      state <= next_1;
       if(_zz_9)begin
         bitTimer <= (bitTimer - (6'b000001));
         case(state)
           3'b000 : begin
             if((io_rx == 1'b0))begin
-              state <= (3'b001);
+              next_1 <= (3'b001);
               bitTimer <= (6'b011111);
             end
           end
@@ -202,9 +204,9 @@ module AsyncReceiver (
             if((bitTimer == (6'b000000)))begin
               if((io_rx == 1'b0))begin
                 bitTimer <= (6'b111111);
-                state <= (3'b010);
+                next_1 <= (3'b010);
               end else begin
-                state <= (3'b000);
+                next_1 <= (3'b000);
               end
             end
           end
@@ -213,24 +215,24 @@ module AsyncReceiver (
               shifter[bitCount] <= io_rx;
               bitCount <= (bitCount + (3'b001));
               if((bitCount == (3'b111)))begin
-                state <= (3'b011);
+                next_1 <= (3'b011);
               end
             end
           end
           3'b011 : begin
             if((bitTimer == (6'b000000)))begin
               if((io_rx == 1'b1))begin
-                state <= (3'b100);
+                next_1 <= (3'b100);
               end else begin
-                state <= (3'b000);
+                next_1 <= (3'b000);
               end
             end
           end
           3'b100 : begin
-            state <= (3'b000);
+            next_1 <= (3'b000);
           end
           default : begin
-            state <= (3'b000);
+            next_1 <= (3'b000);
           end
         endcase
       end
@@ -252,7 +254,6 @@ module AsyncReceiver (
 
   always @ (posedge clk) begin
     _zz_1 <= baudClockX64Sync2;
-    unused <= {5'd0, state};
     _zz_2 <= busCycle;
   end
 

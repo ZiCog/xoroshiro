@@ -1,6 +1,5 @@
 package Xoroshiro
 
-import Xoroshiro._
 import spinal.core._
 
 class AsyncReceiver extends Component {
@@ -16,6 +15,7 @@ class AsyncReceiver extends Component {
   }
 
   val state = Reg(UInt(3 bits)) init (0)
+  val next = Reg(UInt(3 bits)) init (0)
   val bitTimer = Reg(UInt(6 bits)) init (0)
   val bitCount = Reg(UInt(3 bits)) init (0)
   val shifter = Reg(UInt(8 bits)) init (0)
@@ -25,13 +25,14 @@ class AsyncReceiver extends Component {
   fifo.io.write := False
   fifo.io.dataIn := 0
 
-  val unused = Reg(UInt(8 bits))
-
   val  baudClockX64Sync1 = Reg(Bool) init False
   val  baudClockX64Sync2 = Reg(Bool) init False
 
   baudClockX64Sync1 := io.baudClockX64
   baudClockX64Sync2 := baudClockX64Sync1
+
+  // Using next to update state ensures Quartus infers the state machine correctly.
+  state := next
 
   // Rx state machine
   when (baudClockX64Sync2.rise) {
@@ -40,7 +41,7 @@ class AsyncReceiver extends Component {
       is(0) {
         // Waiting for falling edge of start bit
         when(io.rx === False) {
-          state := 1
+          next := 1
           bitTimer := 31
         }
       }
@@ -49,9 +50,9 @@ class AsyncReceiver extends Component {
         when(bitTimer === 0) {
           when(io.rx === False) {
             bitTimer := 63
-            state := 2
+            next := 2
           } otherwise {
-            state := 0
+            next := 0
           }
         }
       }
@@ -61,7 +62,7 @@ class AsyncReceiver extends Component {
           shifter(bitCount) := io.rx
           bitCount := bitCount + 1
           when(bitCount === 7) {
-            state := 3
+            next := 3
           }
         }
       }
@@ -69,28 +70,25 @@ class AsyncReceiver extends Component {
         // Check stop bit
         when(bitTimer === 0) {
           when(io.rx === True) {
-            state := 4
+            next := 4
           } otherwise {
-            state := 0
+            next := 0
           }
         }
       }
       is(4) {
-        // Got a byte write it to FIFO
+        // Got a byte, write it to FIFO
         when (!fifo.io.full) {
           fifo.io.dataIn := shifter
           fifo.io.write := True
         }
-        state := 0
+        next := 0
       }
       default {
-        state := 0
+        next := 0
       }
     }
   }
-
-  // FIXME: This is required to stop Quartus beaking the state machine !
-  unused := state.resize(8)
 
   // Bus interface
   // Wire-ORed output bus
