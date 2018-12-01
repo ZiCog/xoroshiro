@@ -31,67 +31,81 @@ class AsyncReceiver extends Component {
   baudClockX64Sync1 := io.baudClockX64
   baudClockX64Sync2 := baudClockX64Sync1
 
-  // Using next to update state ensures Quartus infers the state machine correctly.
-  state := next
-
   val S0 = 0
   val S1 = 1
   val S2 = 2
   val S3 = 3
   val S4 = 4
 
-  // Rx state machine
+  // Maintain the bit timer
   when (baudClockX64Sync2.rise) {
     bitTimer := bitTimer - 1
-    switch(state) {
-      is(S0) {
+  }
+
+  // Rx state machine
+  switch(state) {
+    is(S0) {
+      state := S0
+      when (baudClockX64Sync2.rise) {
         // Waiting for falling edge of start bit
         when(io.rx === False) {
-          next := S1
+          state := S1
           bitTimer := 31
         }
       }
-      is(S1) {
-        // Check valid start bit
+    }
+    is(S1) {
+      state := S1
+      // Check valid start bit
+      when (baudClockX64Sync2.rise) {
         when(bitTimer === 0) {
           when(io.rx === False) {
             bitTimer := 63
-            next := S2
+            state := S2
           } otherwise {
-            next := S0
+            state := S0
           }
         }
       }
-      is(S2) {
+    }
+    is(S2) {
+      state := S2
+      when (baudClockX64Sync2.rise) {
         // Clock in data bits
         when(bitTimer === 0) {
           shifter(bitCount) := io.rx
           bitCount := bitCount + 1
           when(bitCount === 7) {
-            next := S3
+            state := S3
           }
         }
       }
-      is(S3) {
+    }
+    is(S3) {
+      state := S3
+      when (baudClockX64Sync2.rise) {
         // Check stop bit
         when(bitTimer === 0) {
           when(io.rx === True) {
-            next := S4
+            state := S4
           } otherwise {
-            next := S0
+            state := S0
           }
         }
       }
-      is(4) {
+    }
+    is(4) {
+      state := S4
+      when (baudClockX64Sync2.rise) {
         // Got a byte, write it to FIFO
-        when (!fifo.io.full) {
+        when(!fifo.io.full) {
           fifo.io.write := True
         }
-        next := S0
+        state := S0
       }
-      default {
-        next := S0
-      }
+    }
+    default {
+      state := S0
     }
   }
 

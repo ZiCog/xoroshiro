@@ -49,7 +49,7 @@ class AsyncTransmitter extends Component {
   when(busCycle.rise) {
     switch(io.mem_addr) {
       is(U"0000") {
-        when (io.mem_wstrb  === U(1)) {
+        when (io.mem_wstrb(0)) {
           fifo.io.write := True
         }
       }
@@ -80,7 +80,7 @@ class AsyncTransmitter extends Component {
           bitCount := 7
           bitTimer := 63
           tx := False
-          nextState := 1
+          nextState := TX_BITS
         }
       }
       is (TX_BITS) {
@@ -91,7 +91,7 @@ class AsyncTransmitter extends Component {
             shifter := shifter >> U(1)
             bitCount := bitCount - 1
           } otherwise {
-            nextState := 2
+            nextState := STOP_BIT
           }
         }
       }
@@ -99,12 +99,12 @@ class AsyncTransmitter extends Component {
         when (bitTimer === 0) {
           bitTimer := 63
           tx := True
-          nextState := 3
+          nextState := DONE
         }
       }
       is (DONE) {
         when (bitTimer === 0) {
-          nextState := 0
+          nextState := IDLE
         }
       }
     }
