@@ -1,5 +1,5 @@
 // Generator : SpinalHDL v1.1.5    git head : 0310b2489a097f2b9de5535e02192d9ddd2764ae
-// Date      : 01/12/2018, 09:11:40
+// Date      : 02/12/2018, 10:37:58
 // Component : AsyncTransmitter
 
 
@@ -124,9 +124,9 @@ module AsyncTransmitter (
   wire  busCycle;
   reg  _zz_1;
   reg  _zz_2;
-  assign _zz_9 = (baudClockX64Sync2 && (! _zz_2));
-  assign _zz_10 = (busCycle && (! _zz_1));
-  assign _zz_11 = (! _zz_8);
+  assign _zz_9 = (! _zz_8);
+  assign _zz_10 = (baudClockX64Sync2 && (! _zz_2));
+  assign _zz_11 = (busCycle && (! _zz_1));
   assign _zz_12 = {24'd0, rdata};
   assign _zz_13 = (! _zz_8);
   Fifo fifo_1 ( 
@@ -142,10 +142,10 @@ module AsyncTransmitter (
   assign rdy = 1'b0;
   always @ (*) begin
     _zz_4 = 1'b0;
-    if(_zz_9)begin
+    if(_zz_10)begin
       case(state)
         2'b00 : begin
-          if(_zz_11)begin
+          if(_zz_9)begin
             _zz_4 = 1'b1;
           end
         end
@@ -161,7 +161,7 @@ module AsyncTransmitter (
 
   always @ (*) begin
     _zz_5 = 1'b0;
-    if(_zz_10)begin
+    if(_zz_11)begin
       case(io_mem_addr)
         4'b0000 : begin
           if(io_mem_wstrb[0])begin
@@ -197,7 +197,7 @@ module AsyncTransmitter (
       baudClockX64Sync1 <= io_baudClockX64;
       baudClockX64Sync2 <= baudClockX64Sync1;
       ready <= busCycle;
-      if(_zz_10)begin
+      if(_zz_11)begin
         case(io_mem_addr)
           4'b0000 : begin
           end
@@ -209,11 +209,11 @@ module AsyncTransmitter (
         endcase
       end
       state <= nextState;
-      if(_zz_9)begin
+      if(_zz_10)begin
         bitTimer <= (bitTimer - (6'b000001));
         case(state)
           2'b00 : begin
-            if(_zz_11)begin
+            if(_zz_9)begin
               shifter <= _zz_6;
               bitCount <= (3'b111);
               bitTimer <= (6'b111111);
