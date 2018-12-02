@@ -31,10 +31,8 @@ class AsyncReceiver extends Component {
   baudClockX64Sync2 := baudClockX64Sync1
 
   val  rxSync1 = Reg(Bool) init False
-  //val  rxSync2 = Reg(Bool) init False
 
   rxSync1 := io.rx
-  //rxSync2 := rxSync1
 
   val S0 = 0
   val S1 = 1
