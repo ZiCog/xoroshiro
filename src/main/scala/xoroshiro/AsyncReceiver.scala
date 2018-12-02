@@ -14,8 +14,7 @@ class AsyncReceiver extends Component {
     val rx = in Bool
   }
 
-  val state = Reg(UInt(3 bits)) init (0)
-  val next = Reg(UInt(3 bits)) init (0)
+  val state = Reg(UInt(2 bits)) init (0)
   val bitTimer = Reg(UInt(6 bits)) init (0)
   val bitCount = Reg(UInt(3 bits)) init (0)
   val shifter = Reg(UInt(8 bits)) init (0)
@@ -41,7 +40,6 @@ class AsyncReceiver extends Component {
   val S1 = 1
   val S2 = 2
   val S3 = 3
-  val S4 = 4
 
   // Maintain the bit timer
   when (baudClockX64Sync2.rise) {
@@ -88,24 +86,12 @@ class AsyncReceiver extends Component {
       // Check stop bit
       when(bitTimer === 0) {
         when(rxSync2 === True) {
-          state := S4
-        } otherwise {
-          state := S0
-        }
-      }
-    }
-    is(4) {
-      state := S4
-      when (baudClockX64Sync2.rise) {
-        // Got a byte, write it to FIFO
-        when(!fifo.io.full) {
-          fifo.io.write := True
+          when(!fifo.io.full) {
+            fifo.io.write := True
+          }
         }
         state := S0
       }
-    }
-    default {
-      state := S0
     }
   }
 
