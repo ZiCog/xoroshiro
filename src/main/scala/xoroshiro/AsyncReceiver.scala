@@ -31,6 +31,12 @@ class AsyncReceiver extends Component {
   baudClockX64Sync1 := io.baudClockX64
   baudClockX64Sync2 := baudClockX64Sync1
 
+  val  rxSync1 = Reg(Bool) init False
+  val  rxSync2 = Reg(Bool) init False
+
+  rxSync1 := io.rx
+  rxSync2 := rxSync1
+
   val S0 = 0
   val S1 = 1
   val S2 = 2
@@ -46,25 +52,21 @@ class AsyncReceiver extends Component {
   switch(state) {
     is(S0) {
       state := S0
-      when (baudClockX64Sync2.rise) {
-        // Waiting for falling edge of start bit
-        when(io.rx === False) {
-          state := S1
-          bitTimer := 31
-        }
+      // Waiting for falling edge of start bit
+      when(rxSync2.fall) {
+        state := S1
+        bitTimer := 31
       }
     }
     is(S1) {
       state := S1
       // Check valid start bit
-      when (baudClockX64Sync2.rise) {
-        when(bitTimer === 0) {
-          when(io.rx === False) {
-            bitTimer := 63
-            state := S2
-          } otherwise {
-            state := S0
-          }
+      when(bitTimer === 0) {
+        when(rxSync2 === False) {
+          bitTimer := 63
+          state := S2
+        } otherwise {
+          state := S0
         }
       }
     }
@@ -72,8 +74,8 @@ class AsyncReceiver extends Component {
       state := S2
       when (baudClockX64Sync2.rise) {
         // Clock in data bits
-        when(bitTimer === 0) {
-          shifter(bitCount) := io.rx
+        when (bitTimer === 0) {
+          shifter(bitCount) := rxSync2
           bitCount := bitCount + 1
           when(bitCount === 7) {
             state := S3
@@ -83,14 +85,12 @@ class AsyncReceiver extends Component {
     }
     is(S3) {
       state := S3
-      when (baudClockX64Sync2.rise) {
-        // Check stop bit
-        when(bitTimer === 0) {
-          when(io.rx === True) {
-            state := S4
-          } otherwise {
-            state := S0
-          }
+      // Check stop bit
+      when(bitTimer === 0) {
+        when(rxSync2 === True) {
+          state := S4
+        } otherwise {
+          state := S0
         }
       }
     }
